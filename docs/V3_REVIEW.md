@@ -1,8 +1,8 @@
 # Colony Mash V3 — review build
 
-**Route:** /V3 (uppercase V is intentional)
+**Route:** /v3 (lowercase, canonical path)
 **Branch:** feature/v3-flavor-universe
-**Status:** Review-only preview. Not ready for public advertising or online payments.
+**Status:** Review-only experience on the main branch. No checkout or messaging is active.
 
 ## Features for review
 1. Distinctive editorial hero with the existing Colony Mash color system (beer stays grayscale; seltzer owns color).
@@ -19,11 +19,11 @@
 - No customer accounts, real voting, centrally saved favorites, analytics, SMS alerts, checkout, inventory sync, live launch calendar or payment processing exist in this preview.
 - Local browser storage key: colony-mash-v3-exploration.
 - Flavor matching is based on literal name / listed style, not verified sensory notes. Erik must supply rich attributes before taste-based claims or AI recommendations are made.
-- /V3 is not in the global navigation; it is noindex and is absent from the sitemap. The current V1/V2 homepage remains unchanged.
+- /v3 is not in the global navigation; it is noindex and is absent from the sitemap. The current V1/V2 homepage remains unchanged.
 
 ## Acceptance checks
 - Run: npm ci; npm test; npm run typecheck; npm run build (Node 22.18+).
-- Test /V3 in Vercel preview on iPhone width (375px), tablet, and desktop.
+- Test /v3 in Vercel preview on iPhone width (375px), tablet, and desktop.
 - Confirm saved releases survive reload and that favorites clear on removal.
 - Try all Flavor DNA modes: same-type and wildcard recommendations, name/style matching.
 - Try all archive tabs and search; check empty-state behavior.
@@ -39,4 +39,4 @@
 - Staff-facing tapboard and packaged inventory, merchant checkout, legal age / ID verification and licensed delivery configuration.
 - Opt-in communications with provider support, privacy notice and compliant age verification.
 
-Do not merge or deploy V3 to the live domain before owner approval and QA.
+The owner has approved adding /v3 to the main branch as a separate review route. Do not replace the homepage or activate unfinished commerce, delivery, or SMS features without further approval.

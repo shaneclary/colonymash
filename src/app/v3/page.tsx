@@ -6,7 +6,7 @@ import "../v3.css";
 export const metadata = pageMeta({
   title: "V3 Experience Preview — Find Your Color",
   description: "An interactive preview of the Colony Mash Flavor DNA, release archive, Cabana Lab and flavor passport.",
-  path: "/V3",
+  path: "/v3",
   index: false,
 });
 
