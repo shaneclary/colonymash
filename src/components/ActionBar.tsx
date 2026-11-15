@@ -8,11 +8,11 @@ export function ActionBar() {
       <a className="cm-btn cm-btn--primary cm-body-strong" href={site.directionsUrl}>
         Directions
       </a>
-      <a className="cm-btn cm-body-strong" href={site.phone.href}>
-        Call
-      </a>
       <Link className="cm-btn cm-body-strong" href={routes.onTap}>
         On tap
+      </Link>
+      <Link className="cm-btn cm-body-strong" href={routes.order}>
+        Cans & kegs
       </Link>
     </nav>
   );

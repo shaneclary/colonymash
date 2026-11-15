@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatAbv, isPouring, type Seltzer } from "@/content/drinks";
+import { formatAbv, isPouring, tapList, type Seltzer } from "@/content/drinks";
 import { drinkPath } from "@/content/site";
 
 /**
@@ -8,7 +8,7 @@ import { drinkPath } from "@/content/site";
  */
 export function FlavorCard({ seltzer }: { seltzer: Seltzer }) {
   const pouring = isPouring(seltzer);
-  const state = pouring ? "On tap" : seltzer.kickedAt ? `Kicked ${seltzer.kickedAt}` : "Not pouring";
+  const state = !tapList.confirmed ? "Sample tap status" : pouring ? "On tap" : seltzer.kickedAt ? `Kicked ${seltzer.kickedAt}` : "Not pouring";
   return (
     <article className={`cm-flavorcard cm-flavor cm-flavor--${seltzer.flavor}${pouring ? "" : " cm-flavorcard--rest"}`}>
       <div className="cm-flavorcard__top">

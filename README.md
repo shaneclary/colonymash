@@ -86,3 +86,12 @@ src/app/               the pages
   site.css             page layout only
 docs/LAUNCH.md         the checklist before going live
 ```
+
+
+## V2 development branch: digital taproom
+- /explore: searchable beer and hard seltzer release library.
+- /order: responsive cans-and-kegs request builder, saved in the browser, with mailto availability inquiries. This is NOT a paid order and has no confirmed inventory or price.
+- Proposed delivery thresholds (not approved): **more than 2 kegs** for SLO County (3+); **5+ kegs** for a 150-mile region. Both require Erik's confirmation and legal/geographic validation.
+- /updates: promotional SMS preference UI preview only. Signups are disabled pending age verification, carrier/provider approval, and consent tracking.
+- Unified keg-status selector excludes kicked kegs. All existing V1 routes remain intact.
+- See /confirm and docs/LAUNCH.md. Do not activate commerce or delivery before operations/legal review.

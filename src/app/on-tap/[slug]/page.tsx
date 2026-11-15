@@ -77,6 +77,19 @@ export default async function DrinkPage({ params }: { params: Promise<Params> })
                 <Confirm id="process" />
               </p>
             ) : null}
+            {drink.tasting && <section className="cm-stack cm-stack--fill" aria-label="Tasting profile">
+              <h2 className="cm-sign-md">Inside the glass</h2>
+              <dl className="cm-facts">
+                {drink.tasting.aroma && <><dt className="cm-label">Aroma</dt><dd className="cm-body">{drink.tasting.aroma}</dd></>}
+                {drink.tasting.palate && <><dt className="cm-label">Palate</dt><dd className="cm-body">{drink.tasting.palate}</dd></>}
+                {drink.tasting.finish && <><dt className="cm-label">Finish</dt><dd className="cm-body">{drink.tasting.finish}</dd></>}
+              </dl>
+            </section>}
+            {drink.brewerNote && <section className="cm-stack cm-stack--fill"><h2 className="cm-sign-md">From the brewer</h2><p className="cm-body">{drink.brewerNote}</p></section>}
+            {drink.ingredients && drink.ingredients.length > 0 && <section className="cm-stack cm-stack--fill">
+              <h2 className="cm-sign-md">Ingredients</h2><p className="cm-body">{drink.ingredients.join(", ")}</p>
+            </section>}
+            {!drink.tasting && !drink.brewerNote && <p className="cm-small cm-soft">More flavor and brewing notes will appear here as the brewery confirms them.</p>}
             <dl className="cm-facts">
               {drink.kind === "beer" && drink.style ? (
                 <>

@@ -45,14 +45,18 @@ export const routes = {
   story: "/story",
   confirm: "/confirm",
   under21: "/under-21",
+  explore: "/explore",
+  order: "/order",
+  updates: "/updates",
 } as const;
 
 export const drinkPath = (slug: string) => `${routes.onTap}/${slug}`;
 
-/** The four header links, in the style guide's order. Everything else lives in the footer. */
+/** Main navigation. All ordering remains an availability inquiry until integration. */
 export const nav = [
   { label: "On tap", href: routes.onTap },
-  { label: "Seltzer", href: routes.seltzer },
+  { label: "Explore", href: routes.explore },
+  { label: "Cans & kegs", href: routes.order },
   { label: "Visit", href: routes.visit },
-  { label: "Private events", href: routes.privateEvents },
+  { label: "Updates", href: routes.updates },
 ] as const;

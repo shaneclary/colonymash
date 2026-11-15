@@ -44,6 +44,9 @@ export default function HomePage() {
               <Link className="cm-btn cm-body-strong" href={routes.onTap}>
                 See what&apos;s on tap
               </Link>
+              <Link className="cm-btn cm-body-strong" href={routes.order}>
+                Cans &amp; kegs to go
+              </Link>
             </div>
           </div>
           <span className="cm-logo cm-logo--hero cm-hero__mark" aria-hidden="true" />
@@ -78,6 +81,9 @@ export default function HomePage() {
           <div className="cm-actions">
             <Link className="cm-btn cm-body-strong" href={routes.seltzer}>
               All {allSeltzers.length} flavors
+            </Link>
+            <Link className="cm-btn cm-body-strong" href={routes.explore}>
+              Explore every release
             </Link>
           </div>
         </div>

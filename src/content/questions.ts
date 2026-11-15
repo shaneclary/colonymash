@@ -96,6 +96,43 @@ export const questions = [
     assumed: "Four photos are in place from files Shane supplied. Erik's selfie is cleared. The storefront photo also appears on Visit SLO CAL's listing, and the row of seltzers is a soft crop of a screenshot.",
     file: "src/content/photos.ts",
   },
+
+  {
+    id: "pickup-products",
+    ask: "Which cans and kegs are actually available to go? For each release: package size, keg size, deposit, pricing, stock, and whether a reservation or prepayment is allowed.",
+    assumed: "V2 permits an email availability inquiry for any historical release. It does not claim the product is packaged or in stock; no online purchase is enabled.",
+    file: "src/content/drinks.ts; src/app/order/page.tsx; src/components/PickupPlanner.tsx",
+  },
+  {
+    id: "pickup-operations",
+    ask: "What pickup windows, lead times, ID checks, keg handling, deposits, returns, payment methods, and order cancellation/refund rules should apply? Who receives and fulfills pickup requests?",
+    assumed: "A customer can email an availability request. This is not an accepted order and no payment is collected.",
+    file: "src/components/PickupPlanner.tsx; future POS integration",
+  },
+  {
+    id: "delivery-slo",
+    ask: "Confirm SLO County delivery for MORE THAN 2 kegs (minimum 3), not 2+. Is every SLO County address included? What are the fees, lead time, cutoff, vehicle and staffing limits, and legal restrictions?",
+    assumed: "Proposed threshold is 3+ kegs; strictly unconfirmed and displayed as proposed only.",
+    file: "src/lib/commerce.ts; src/components/PickupPlanner.tsx",
+  },
+  {
+    id: "delivery-regional",
+    ask: "Confirm delivery with 5 or more kegs within 150 miles. From which origin is the 150-mile distance measured? Road mileage or straight line? What fees, lead times, service boundaries, return policies and legal restrictions apply?",
+    assumed: "Proposed 5+ keg minimum, up to 150 miles; not an active service. No address validation is implemented.",
+    file: "src/lib/commerce.ts; src/components/PickupPlanner.tsx",
+  },
+  {
+    id: "pos",
+    ask: "Which POS does the brewery use? Can we connect catalog, prices, real inventory, online payment, pickup orders, refunds, and staff notifications? Which merchant and licensing approvals are needed?",
+    assumed: "None chosen or connected; V2 email inquiries are not purchases.",
+    file: "future POS, inventory and checkout integration",
+  },
+  {
+    id: "sms-consent",
+    ask: "Do you want SMS release alerts, back-on-tap alerts, and pickup notifications? Which provider, age verification, opt-in/STOP language, message frequency, and privacy policy should be approved?",
+    assumed: "The updates page is a disabled signup preview and does not collect telephone numbers or subscriptions.",
+    file: "src/app/updates/page.tsx; src/components/UpdatesPreview.tsx",
+  },
 ] as const satisfies readonly Question[];
 
 export type QuestionId = (typeof questions)[number]["id"];
