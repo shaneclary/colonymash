@@ -83,7 +83,7 @@ export function V3Experience({ drinks }: { drinks: Drink[] }) {
         if (Array.isArray(state.ideas)) {
           setIdeas(state.ideas.filter((idea): idea is LabIdea =>
             Boolean(idea && typeof idea === "object" && typeof idea.id === "string" &&
-              fruits.some((item) => item.label === idea.base) && accents.some((item) => item === idea.accent))
+              fruits.some((item) => item.label === idea.base) && accents.some((item) => item === idea.accent)))
           .slice(0, limits.ideas));
         }
       }
