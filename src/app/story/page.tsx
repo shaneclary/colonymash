@@ -33,6 +33,7 @@ export default function StoryPage() {
           </div>
         </div>
         <div className="cm-stack cm-stack--lg cm-stack--fill">
+          <Photo slot={photos.erik} caption="Erik Knapp, co-owner and brewer." eager />
           <Photo slot={photos.owners} />
           <Photo slot={photos.build} />
         </div>

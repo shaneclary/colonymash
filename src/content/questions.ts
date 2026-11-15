@@ -93,7 +93,7 @@ export const questions = [
   {
     id: "photos",
     ask: "Are the photos on the site yours to use, and can you send the original files?",
-    assumed: "Three photos are in place from files Shane supplied. The storefront photo also appears on Visit SLO CAL's listing, and the row of seltzers is a soft crop of a screenshot.",
+    assumed: "Four photos are in place from files Shane supplied. Erik's selfie is cleared. The storefront photo also appears on Visit SLO CAL's listing, and the row of seltzers is a soft crop of a screenshot.",
     file: "src/content/photos.ts",
   },
 ] as const satisfies readonly Question[];
