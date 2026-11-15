@@ -36,3 +36,13 @@ Nothing here is done yet. Work down the list; do not set `NEXT_PUBLIC_INDEXABLE=
       no Confirm tags or photo briefs show anywhere.
 - [ ] Open it on a phone, outside, in daylight. Check the status against the door.
 - [ ] Update the Google Business listing, Instagram bio, Yelp and Untappd to point at the new address.
+
+
+## V2 commerce and messaging release blockers
+- [ ] Erik confirms all cans/kegs eligible for to-go sales, package and keg sizes, deposits, accurate prices, live stock, and keg return policy.
+- [ ] Erik confirms **SLO County delivery for more than two kegs (3+)**: exact geographic service area, fees, scheduling, ID handoff and legal authorization.
+- [ ] Erik confirms **delivery within 150 miles for five or more kegs**: origin point, road vs radius measurement, pricing, timing, permitting and eligibility.
+- [ ] Confirm the actual POS, merchant-of-record, online alcohol sales eligibility, inventory sync, fulfillment state machine, cancellations, refunds and secure payment flow.
+- [ ] Confirm legal age verification and identity checks at checkout and handoff. Site click-through age gate is not sufficient for alcohol transactions.
+- [ ] Confirm the SMS provider accepts alcohol marketing and that opt-in language, age verification, STOP handling, message logs, privacy and marketing consent are configured.
+- [ ] Until all above are satisfied, keep V2 as an **availability-inquiry preview**; never mislabel emailed inquiries as prepaid purchases or offer delivery as confirmed.

@@ -14,6 +14,10 @@ type DrinkBase = {
   detail?: string;
   /** One or two true sentences for the drink's page. */
   description?: string;
+  /** Owner-approved sensory and production notes; do not infer from the name. */
+  tasting?: { aroma?: string; palate?: string; finish?: string; };
+  ingredients?: string[];
+  brewerNote?: string;
   /** This drink's own photo. Without one, its page shows the standard slot for a beer or a seltzer. */
   photo?: PhotoSlot;
   onTap: boolean;
