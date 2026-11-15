@@ -36,10 +36,10 @@ const colorName: Record<Flavor, string> = {
   clear: "Cloudy and pale",
 };
 
-/** The class that floods the top of the page: a pouring seltzer's color, or a beer's shade of grey. */
+/** The class that floods the top of the page: a seltzer's color (dashed edges when it is not pouring), or a beer's shade of grey. */
 function headClass(drink: Drink): string {
   if (drink.kind === "beer") return drink.shade ? ` cm-shade--${drink.shade}` : "";
-  return isPouring(drink) ? ` cm-flavor--${drink.flavor}` : " cm-drinkhead--off";
+  return ` cm-flavor--${drink.flavor}${isPouring(drink) ? "" : " cm-drinkhead--off"}`;
 }
 
 export default async function DrinkPage({ params }: { params: Promise<Params> }) {

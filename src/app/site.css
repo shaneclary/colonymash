@@ -74,14 +74,12 @@ a.cm-tag { text-decoration: none; }
 
 /* Drinks */
 .cm-drop--off { border-style: dashed; border-color: var(--cm-ink-soft); background: var(--cm-wash); }
-.cm-flavorcard a, .cm-beer__label a, a.cm-flight__glass { color: inherit; text-decoration: none; }
+.cm-drop--rest { border-style: dashed; }
+/* A flight glass is itself the link and takes its ink from its flavor, so it is left out of this rule. */
+.cm-flavorcard a, .cm-beer__label a { color: inherit; text-decoration: none; }
 .cm-flavorcard a:hover, .cm-beer__label a:hover, a.cm-flight__glass:hover .cm-body-strong { text-decoration: underline; text-decoration-thickness: var(--cm-rule); text-underline-offset: var(--cm-space-1); }
 .cm-flavorcard, .cm-beer { width: 100%; }
 .cm-photo--strip .cm-photo__frame { aspect-ratio: 21 / 9; }
-/* On a phone the flight shows three and a half glasses, so it is plain there are more to the right. */
-@media (max-width: 560px) {
-  .cm-flight { grid-auto-columns: minmax(6.25rem, 1fr); }
-}
 .cm-photo { width: 100%; }
 
 /* A beer's page is headed in its own shade of grey, the way a seltzer's is headed in its color. */

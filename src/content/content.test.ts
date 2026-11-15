@@ -41,7 +41,7 @@ test("every beer shade is 1 to 6, and beers are listed light to dark", () => {
   assert.deepEqual(shades, [...shades].sort((first, second) => first - second));
 });
 
-test("a kicked seltzer is on the list but not pouring, so it loses its color", () => {
+test("a kicked seltzer is on the list but not pouring", () => {
   for (const seltzer of seltzersPouring) assert.equal(seltzer.kickedAt, undefined);
   for (const drink of drinks) if (drink.kickedAt) assert.ok(drink.onTap, `${drink.name} is kicked but not on the list`);
 });

@@ -3,14 +3,14 @@ import { formatAbv, isPouring, type Seltzer } from "@/content/drinks";
 import { drinkPath } from "@/content/site";
 
 /**
- * A seltzer as a block of its own color. Only a seltzer that is pouring gets the color;
- * one that is off the list is a dashed, grey card with the same words.
+ * A seltzer as a block of its own color. Every seltzer wears its color.
+ * One that is on tap has a solid edge and a full dot; one that is not pouring has a dashed edge and an empty ring.
  */
 export function FlavorCard({ seltzer }: { seltzer: Seltzer }) {
   const pouring = isPouring(seltzer);
   const state = pouring ? "On tap" : seltzer.kickedAt ? `Kicked ${seltzer.kickedAt}` : "Not pouring";
   return (
-    <article className={pouring ? `cm-flavorcard cm-flavor cm-flavor--${seltzer.flavor}` : "cm-flavorcard cm-flavorcard--off"}>
+    <article className={`cm-flavorcard cm-flavor cm-flavor--${seltzer.flavor}${pouring ? "" : " cm-flavorcard--rest"}`}>
       <div className="cm-flavorcard__top">
         <span className="cm-label">Hard seltzer</span>
         <span className="cm-mini cm-small">

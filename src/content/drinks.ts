@@ -104,7 +104,7 @@ export const allBeers: Beer[] = [...beers].sort(byShade);
 export const allSeltzers: Seltzer[] = [...seltzers].sort(byFlavorWheel);
 export const drinks: Drink[] = [...allBeers, ...allSeltzers];
 
-/** "Pouring" means on the list and not kicked. Only a pouring seltzer gets its color. */
+/** "Pouring" means on the list and not kicked. A pouring drink gets a full dot and a solid edge. */
 export const isPouring = (drink: Drink) => drink.onTap && !drink.kickedAt;
 
 export const beersOnTap = allBeers.filter((beer) => beer.onTap);

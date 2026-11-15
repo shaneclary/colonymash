@@ -5,8 +5,9 @@ static. Shane Clary is building it for the owners, Erik Knapp and Ethan Krout.
 
 ## Rules
 
-- **If it's in color, you can drink it.** Color is only ever a seltzer that is on tap. Everything else, beer
-  included, is black, white or grey. Do not add an accent color, a shadow, a gradient or a rounded card.
+- **Color is seltzer.** Every seltzer wears its own color, on tap or not (full dot and solid edge when on tap,
+  empty ring and dashed edge when not). Everything else, beer included, is black, white or grey. Do not add an
+  accent color, a shadow, a gradient or a rounded card.
 - **No invented facts.** The site was built from public listings. Anything the owners have not confirmed gets an
   entry in `src/content/questions.ts` and a `<Confirm id="..." />` beside it. Do not add prices, tasting notes,
   events, policies or quotes that no source supports.

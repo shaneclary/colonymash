@@ -2,10 +2,13 @@ import { isPouring, type Drink } from "@/content/drinks";
 
 /**
  * The round chip beside a drink's name. A seltzer's is its color; a beer's is how dark it pours.
- * A drink that is not pouring gets a dashed, empty chip: if it's in color, you can drink it.
+ * A seltzer keeps its color when it is not pouring and gets a dashed ring. A beer that is not pouring gets an empty, dashed chip.
  */
 export function DrinkChip({ drink }: { drink: Drink }) {
-  if (!isPouring(drink)) return <span className="cm-drop cm-drop--off" aria-hidden="true" />;
-  const fill = drink.kind === "seltzer" ? drink.flavor : drink.shade ? `b${drink.shade}` : null;
-  return <span className={`cm-drop${fill ? ` cm-fill--${fill}` : ""}`} aria-hidden="true" />;
+  const pouring = isPouring(drink);
+  if (drink.kind === "seltzer") {
+    return <span className={`cm-drop cm-fill--${drink.flavor}${pouring ? "" : " cm-drop--rest"}`} aria-hidden="true" />;
+  }
+  if (!pouring) return <span className="cm-drop cm-drop--off" aria-hidden="true" />;
+  return <span className={`cm-drop${drink.shade ? ` cm-fill--b${drink.shade}` : ""}`} aria-hidden="true" />;
 }

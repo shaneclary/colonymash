@@ -57,12 +57,24 @@ export default function HomePage() {
               Seltzer, in color
             </h2>
             <span className="cm-inline">
-              <span className="cm-data">{seltzersPouring.length} on tap</span>
+              <span className="cm-data">
+                {allSeltzers.length} flavors · {seltzersPouring.length} on tap
+              </span>
               <Confirm id="taps" />
             </span>
           </div>
           <Photo slot={photos.flight} eager />
           <Flight />
+          <p className="cm-inline cm-small">
+            <span className="cm-mini">
+              <span className="cm-dot cm-dot--full" aria-hidden="true" />
+              On tap now
+            </span>
+            <span className="cm-mini">
+              <span className="cm-dot" aria-hidden="true" />
+              Not pouring right now
+            </span>
+          </p>
           <div className="cm-actions">
             <Link className="cm-btn cm-body-strong" href={routes.seltzer}>
               All {allSeltzers.length} flavors

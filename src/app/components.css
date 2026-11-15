@@ -1,6 +1,6 @@
 /* Colony Mash: component styles.
-   One rule runs the whole system: if it's in color, you can drink it.
-   Everything else is cm-ink on cm-paper. Sizes come from the type style classes;
+   One rule runs the whole system: color is seltzer. Every seltzer wears its own color.
+   Everything else, beer included, is cm-ink on cm-paper. Sizes come from the type style classes;
    width (condensed, normal, wide) is set here because the tokens cannot carry it.
    Everything is scoped to .cm-root.
    This file is the style guide's components/bundle.css. Page layout lives in site.css. */
@@ -183,6 +183,8 @@ a.cm-tap__beer { text-decoration: underline; text-decoration-thickness: var(--cm
 .cm-flavorcard__top, .cm-flavorcard__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--cm-space-2) var(--cm-space-4); }
 .cm-flavorcard__name { display: grid; gap: var(--cm-space-2); }
 .cm-flavorcard--off { border: var(--cm-rule) dashed var(--cm-ink-soft); background: var(--cm-wash); color: var(--cm-ink-soft); }
+/* Not pouring right now: the color stays, the edge goes dashed. */
+.cm-flavorcard--rest { border-style: dashed; }
 
 /* BeerCard */
 .cm-beer { display: grid; border: var(--cm-rule) solid var(--cm-ink); background: var(--cm-paper); }
@@ -197,8 +199,19 @@ a.cm-tap__beer { text-decoration: underline; text-decoration-thickness: var(--cm
 /* FlightStrip: the thin line, and the tall flight */
 .cm-strip { display: flex; height: var(--cm-space-2); margin: 0; padding: 0; list-style: none; border-bottom: var(--cm-rule) solid var(--cm-ink); }
 .cm-strip > * { flex: 1 1 0; }
-.cm-flight { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(7.5rem, 1fr); margin: 0; padding: 0; list-style: none; overflow-x: auto; border: var(--cm-rule) solid var(--cm-ink); }
-.cm-flight__glass { display: grid; align-content: end; gap: var(--cm-space-1); min-height: calc(var(--cm-space-8) * 2.5); padding: var(--cm-space-3); text-decoration: none; }
+/* The flight is the wall of color: every seltzer, never scrolling sideways. Glasses share a row and wrap when they run out of room.
+   Each glass has a dot in its top corner: full for on tap, an empty ring for not pouring. */
+.cm-flight { display: flex; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; border: var(--cm-rule) solid var(--cm-ink); }
+.cm-flight > li { display: grid; flex: 1 1 9rem; min-width: 0; }
+.cm-flight__glass { display: grid; grid-template-rows: 1fr auto auto; gap: var(--cm-space-1); min-height: calc(var(--cm-space-8) * 2.5); padding: var(--cm-space-3); text-decoration: none; }
+.cm-flight__glass > .cm-dot { justify-self: end; }
+.cm-flight__name { overflow-wrap: anywhere; }
+/* On a phone the wall is three glasses across, with smaller names. */
+@media (max-width: 560px) {
+  .cm-flight > li { flex-basis: 30%; }
+  .cm-flight__glass { min-height: calc(var(--cm-space-8) * 1.75); padding: var(--cm-space-2); }
+  .cm-flight__name { font-size: 14px; line-height: 18px; }
+}
 
 /* Date block, shared by EventRow and BookingCard */
 .cm-date { display: grid; flex: none; align-content: center; justify-items: center; width: var(--cm-space-8); min-height: var(--cm-space-8); padding: var(--cm-space-1); border: var(--cm-rule) solid var(--cm-ink); border-radius: var(--cm-radius-0); color: var(--cm-ink); }

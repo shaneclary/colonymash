@@ -39,11 +39,12 @@ taps, a closing time before an opening time, a color text cannot be read on, a p
 
 ## The one design rule
 
-**If it's in color, you can drink it.**
+**Color is seltzer.**
 
 Everything practical is black and white: the frame, the hours, the buttons, the status, photos of the place and
-the people, and beer, which is shown as six greys from pale to dark. Full flat color is kept for one thing, a
-seltzer that is on tap. A seltzer that is off the list turns grey and dashed.
+the people, and beer, which is shown as six greys from pale to dark. Full flat color is kept for one thing:
+seltzer. Every seltzer wears its own color. One that is on tap has a full dot and a solid edge; one that is not
+pouring keeps its color and gets an empty ring and a dashed edge.
 
 The rest of the grammar:
 
