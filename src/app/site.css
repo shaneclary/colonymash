@@ -1,0 +1,142 @@
+/* Colony Mash: page layout.
+   Colors and type come from tokens.css (generated). Components come from components.css (the style guide).
+   This file only places things on the page. No colors are named here. */
+
+html { -webkit-text-size-adjust: 100%; }
+.cm-root img { max-width: 100%; }
+.cm-site { display: flex; flex-direction: column; min-height: 100vh; }
+.cm-site > main { flex: 1; }
+
+.cm-skip { position: absolute; left: var(--cm-space-3); top: var(--cm-space-3); z-index: 30; padding: var(--cm-space-3) var(--cm-space-4); background: var(--cm-ink); color: var(--cm-on-ink); transform: translateY(-300%); }
+.cm-skip:focus { transform: none; }
+
+/* Layout */
+.cm-wrap { width: 100%; max-width: var(--cm-content-max); margin-inline: auto; }
+.cm-stack { display: grid; gap: var(--cm-space-4); align-content: start; justify-items: start; min-width: 0; }
+.cm-stack > * { min-width: 0; max-width: 100%; }
+.cm-stack--lg { gap: var(--cm-space-6); }
+.cm-stack--fill { justify-items: stretch; }
+.cm-split { display: grid; gap: var(--cm-space-6); }
+.cm-split > * { min-width: 0; }
+.cm-measure { max-width: var(--cm-measure); }
+.cm-actions { display: flex; flex-wrap: wrap; gap: var(--cm-space-2); }
+.cm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: var(--cm-space-4); margin: 0; padding: 0; list-style: none; }
+.cm-cards > li { display: grid; min-width: 0; }
+.cm-section__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--cm-space-2) var(--cm-space-4); width: 100%; }
+.cm-nowrap { white-space: nowrap; }
+.cm-inline { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--cm-space-2) var(--cm-space-3); }
+
+@media (min-width: 860px) {
+  .cm-section { padding: var(--cm-space-8) var(--cm-space-6); }
+  .cm-split { grid-template-columns: 1fr 1fr; gap: var(--cm-space-7); align-items: start; }
+}
+
+/* The type tokens are sized for a desk. On a phone the big voices step down. */
+@media (max-width: 560px) {
+  .cm-sign-xl { font-size: 54px; }
+  .cm-sign-lg { font-size: 40px; }
+  .cm-shout-xl { font-size: 34px; }
+  .cm-shout { font-size: 24px; }
+}
+.cm-cards .cm-shout { font-size: 24px; }
+.cm-shout, .cm-shout-xl, .cm-sign-xl, .cm-sign-lg { overflow-wrap: anywhere; }
+
+/* The mark. One file, inked in whatever color the section's text is. */
+.cm-logo { display: block; flex: none; width: var(--cm-space-7); aspect-ratio: 1; background: currentColor; -webkit-mask: url("/images/logo-mask.png") center / contain no-repeat; mask: url("/images/logo-mask.png") center / contain no-repeat; }
+.cm-logo--gate { width: calc(var(--cm-space-8) * 2); }
+.cm-logo--footer { width: calc(var(--cm-space-8) * 2.5); }
+.cm-logo--hero { width: min(100%, 22rem); }
+
+/* Review bar: only on the staging site */
+.cm-review { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--cm-space-1) var(--cm-space-3); padding: var(--cm-space-2) var(--cm-space-4); border-bottom: var(--cm-rule) dashed var(--cm-ink); background: var(--cm-paper); color: var(--cm-ink); }
+a.cm-tag { text-decoration: none; }
+
+/* Header */
+.cm-header { padding-inline: var(--cm-space-4); }
+.cm-brand { display: inline-flex; align-items: center; gap: var(--cm-space-3); }
+.cm-header__nav { flex-wrap: nowrap; }
+@media (max-width: 719px) {
+  .cm-header { gap: 0 var(--cm-space-3); padding-bottom: 0; }
+  .cm-header__navwrap { order: 3; flex: 1 1 100%; overflow-x: auto; margin-inline: calc(var(--cm-space-2) * -1); }
+  .cm-header__link { padding: 0 var(--cm-space-2); white-space: nowrap; }
+}
+
+/* Home hero: the answer on the left, the mark on the right */
+.cm-hero { display: grid; gap: var(--cm-space-6); align-items: center; }
+.cm-hero__mark { display: none; }
+@media (min-width: 860px) {
+  .cm-hero { grid-template-columns: 3fr 2fr; gap: var(--cm-space-7); }
+  .cm-hero__mark { display: block; justify-self: end; }
+}
+
+/* A page's title block */
+.cm-pagehead { display: grid; gap: var(--cm-space-4); justify-items: start; }
+
+/* Drinks */
+.cm-drop--off { border-style: dashed; border-color: var(--cm-ink-soft); background: var(--cm-wash); }
+.cm-flavorcard a, .cm-beer__label a, a.cm-flight__glass { color: inherit; text-decoration: none; }
+.cm-flavorcard a:hover, .cm-beer__label a:hover, a.cm-flight__glass:hover .cm-body-strong { text-decoration: underline; text-decoration-thickness: var(--cm-rule); text-underline-offset: var(--cm-space-1); }
+.cm-flavorcard, .cm-beer { width: 100%; }
+.cm-photo--strip .cm-photo__frame { aspect-ratio: 21 / 9; }
+/* On a phone the flight shows three and a half glasses, so it is plain there are more to the right. */
+@media (max-width: 560px) {
+  .cm-flight { grid-auto-columns: minmax(6.25rem, 1fr); }
+}
+.cm-photo { width: 100%; }
+
+/* A beer's page is headed in its own shade of grey, the way a seltzer's is headed in its color. */
+.cm-shade--1 { --cm-paper: var(--cm-beer-1); }
+.cm-shade--2 { --cm-paper: var(--cm-beer-2); }
+.cm-shade--3 { --cm-paper: var(--cm-beer-3); }
+.cm-shade--4 { --cm-paper: var(--cm-beer-4); }
+.cm-shade--5 { --cm-paper: var(--cm-beer-5); }
+.cm-shade--6 { --cm-paper: var(--cm-beer-6); }
+.cm-shade--1, .cm-shade--2, .cm-shade--3 {
+  --cm-ink: var(--cm-on-flavor-dark); --cm-on-ink: var(--cm-on-flavor-light); --cm-ink-soft: var(--cm-on-flavor-dark); --cm-hairline: var(--cm-on-flavor-dark); --cm-wash: var(--cm-paper);
+  background: var(--cm-paper); color: var(--cm-ink);
+}
+.cm-shade--4, .cm-shade--5, .cm-shade--6 {
+  --cm-ink: var(--cm-on-flavor-light); --cm-on-ink: var(--cm-on-flavor-dark); --cm-ink-soft: var(--cm-on-flavor-light); --cm-hairline: var(--cm-on-flavor-light); --cm-wash: var(--cm-paper);
+  background: var(--cm-paper); color: var(--cm-ink);
+}
+.cm-drinkhead { border-block: var(--cm-rule) solid var(--cm-edge); }
+/* A long one-word name (Postconventional) has to fit a phone on one line, so the title scales with the screen. */
+.cm-drinkhead .cm-sign-xl { font-size: min(80px, 12.6vw); }
+.cm-drinkhead--off { border-block-style: dashed; }
+
+.cm-facts { display: grid; grid-template-columns: auto 1fr; gap: var(--cm-space-3) var(--cm-space-5); align-items: center; margin: 0; width: 100%; padding: var(--cm-space-4) 0; border-block: var(--cm-rule) solid var(--cm-ink); }
+.cm-facts dt { color: var(--cm-ink-soft); }
+.cm-facts dd { margin: 0; }
+
+/* Each fact in the booking card is a dt and dd wrapped in a div; the div steps out of the way of the grid. */
+.cm-booking__facts > div { display: contents; }
+
+/* Long reading: the story */
+.cm-prose { display: grid; gap: var(--cm-space-4); max-width: var(--cm-measure); }
+
+/* The list of things to confirm */
+.cm-qlist { display: grid; gap: var(--cm-space-4); margin: 0; padding: 0; list-style: none; width: 100%; }
+.cm-q { display: grid; gap: var(--cm-space-2); padding: var(--cm-space-5); border: var(--cm-rule) dashed var(--cm-ink); scroll-margin-top: var(--cm-space-5); }
+.cm-q:target { border-style: solid; }
+.cm-q code { font-family: var(--font-cm-mono); font-size: 0.85em; overflow-wrap: anywhere; }
+
+/* Age gate: covers the page until a visitor answers. The inline script in layout.tsx sets cm-age-ok. */
+.cm-gate-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: var(--cm-space-4); overflow: auto; background: var(--cm-paper); color: var(--cm-ink); }
+html.cm-age-ok .cm-gate-overlay { display: none; }
+
+/* Footer */
+.cm-footer { display: grid; gap: var(--cm-space-6); }
+.cm-footer__list { display: grid; gap: var(--cm-space-2); margin: 0; padding: 0; list-style: none; }
+.cm-footer__base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--cm-space-2) var(--cm-space-4); margin-top: var(--cm-space-6); padding-top: var(--cm-space-4); border-top: var(--cm-rule-thin) solid var(--cm-hairline); color: var(--cm-ink-soft); }
+@media (min-width: 860px) {
+  .cm-footer { grid-template-columns: auto 1fr 1fr 1fr; gap: var(--cm-space-7); align-items: start; }
+}
+
+/* Action bar: pinned to the bottom of a phone, gone on a desk */
+.cm-actionbar--fixed { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding-bottom: calc(var(--cm-space-2) + env(safe-area-inset-bottom)); }
+@media (max-width: 719px) {
+  .cm-site { padding-bottom: calc(var(--cm-bar-height) + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 720px) {
+  .cm-actionbar--fixed { display: none; }
+}
