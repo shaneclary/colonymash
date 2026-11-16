@@ -11,8 +11,8 @@ const date = new Date("2026-11-15T12:00:00");
 const today = "2026-11-15";
 test("demo fixtures are intentionally non-live and contain coherent recipes", () => {
   const state = demoSeed(date);
-  assert.equal(state.version, 1);
-  assert.equal(demoProducts.length, 3);
+  assert.equal(state.version, 2);
+  assert.equal(demoProducts.length, 35);
   for (const recipe of demoRecipes) {
     assert.ok(recipe.yieldLiters > 0);
     for (const line of recipe.bill) assert.ok(state.ingredients.some(i => i.id === line.ingredientId));
@@ -93,4 +93,18 @@ test("inventory edits require bounded nonnegative numbers", () => {
   assert.equal(updateIngredient(state, "fruit", "onHand", -2), state);
   assert.equal(changePlannedBatches(state, "demo-cherry", 2.5), state);
   assert.equal(updateIngredient(state, "fruit", "onHand", 9).ingredients.find(i => i.id === "fruit")?.onHand, 9);
+});
+
+
+test("full archive is browseable, but example unavailable formats cannot be ordered", async () => {
+  const { drinks } = await import("../content/drinks.ts");
+  const { demoTradeStatus, demoStatusText } = await import("../content/portal-demo.ts");
+  assert.equal(demoProducts.length, drinks.length);
+  assert.equal(demoTradeStatus("coconut-horchata","keg"),"unavailable");
+  assert.equal(demoTradeStatus("pink-lightning","keg"),"special_order");
+  assert.match(demoStatusText("unavailable","keg"),/Unavailable in kegs/);
+  assert.deepEqual(sanitizeTradeLines([
+    {productId:"coconut-horchata",format:"keg",quantity:3},
+    {productId:"coconut-horchata",format:"six_pack",quantity:2},
+  ]),[{productId:"coconut-horchata",format:"six_pack",quantity:2}]);
 });

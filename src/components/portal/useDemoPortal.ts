@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { demoAccounts, demoSeed, type DemoState, type PortalRole } from "@/content/portal-demo";
+import { upgradeDemoLedger } from "@/lib/merchant-operations";
 
 const stateKey = "cm-simulated-portal-v1";
 const sessionKey = "cm-simulated-role-v1";
@@ -39,21 +40,6 @@ export function getSavedDemoRole(): PortalRole | null {
   } catch { return null; }
 }
 
-function isDemoState(value: unknown): value is DemoState {
-  if (!value || typeof value !== "object") return false;
-  const state = value as Record<string, unknown>;
-  if (state.version !== 1 || !Array.isArray(state.ingredients) || !Array.isArray(state.orders) ||
-      !Array.isArray(state.production) || !Array.isArray(state.finished)) return false;
-  return state.ingredients.every(x => x && typeof x === "object" && typeof x.id === "string" &&
-    typeof x.onHand === "number" && Number.isFinite(x.onHand) && x.onHand >= 0) &&
-    state.finished.every(x => x && typeof x === "object" && typeof x.productId === "string" &&
-      ["can", "six_pack", "keg"].every(key => Number.isSafeInteger(x[key]) && x[key] >= 0)) &&
-    state.production.every(x => x && typeof x === "object" && typeof x.recipeId === "string" &&
-      Number.isSafeInteger(x.batches) && x.batches >= 0) &&
-    state.orders.every(x => x && typeof x === "object" && typeof x.id === "string" &&
-      Array.isArray(x.lines) && typeof x.status === "string");
-}
-
 /** Persistent only in this browser on this site. Multiple tabs see the same demo ledger. */
 export function useDemoLedger() {
   const [state, setState] = useState<DemoState>(() => demoSeed());
@@ -61,15 +47,17 @@ export function useDemoLedger() {
 
   useEffect(() => {
     try {
-      const saved: unknown = JSON.parse(localStorage.getItem(stateKey) || "null");
-      if (isDemoState(saved)) setState(saved);
+      const parsed: unknown = JSON.parse(localStorage.getItem(stateKey) || "null");
+      const saved = upgradeDemoLedger(parsed, demoSeed());
+      if (saved) setState(saved);
     } catch { /* corrupted or disabled storage: use sample state */ }
     setLoaded(true);
     function onStorage(event: StorageEvent) {
       if (event.key !== stateKey || !event.newValue) return;
       try {
-        const next: unknown = JSON.parse(event.newValue);
-        if (isDemoState(next)) setState(next);
+        const parsed: unknown = JSON.parse(event.newValue);
+        const next = upgradeDemoLedger(parsed, demoSeed());
+        if (next) setState(next);
       } catch { /* ignore malformed updates */ }
     }
     window.addEventListener("storage", onStorage);
