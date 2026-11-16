@@ -69,9 +69,10 @@ export function Footer() {
             © {new Date().getFullYear()} {site.fullName}
           </span>
           {site.reviewMode ? (
-            <Link className="cm-link" href={routes.confirm}>
-              Draft site: {questions.length} things to confirm
-            </Link>
+            <>
+              <Link className="cm-link" href={routes.confirm}>Draft site: {questions.length} things to confirm</Link>
+              <Link className="cm-link" href={routes.portal}>Staff &amp; Merchant Demo ↗</Link>
+            </>
           ) : null}
         </div>
       </div>

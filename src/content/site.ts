@@ -49,6 +49,7 @@ export const routes = {
   order: "/order",
   updates: "/updates",
   community: "/community",
+  portal: "/portal",
 } as const;
 
 export const drinkPath = (slug: string) => `${routes.onTap}/${slug}`;
