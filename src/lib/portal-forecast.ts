@@ -1,5 +1,5 @@
 import {
-  demoPackVolumes, demoProducts, demoRecipes,
+  demoPackVolumes, demoProducts, demoRecipes, demoTradeStatus,
   type DemoState, type Ingredient, type PackFormat, type Recipe,
   type TradeLine, type TradeOrder, type TradeOrderStatus,
 } from "../content/portal-demo.ts";
@@ -14,6 +14,7 @@ export function isTradeLine(line: unknown): line is TradeLine {
   const value = line as Record<string, unknown>;
   return typeof value.productId === "string" && productIds.has(value.productId) &&
     formatIds.includes(value.format as PackFormat) &&
+    demoTradeStatus(value.productId, value.format as PackFormat) !== "unavailable" &&
     Number.isSafeInteger(value.quantity) && Number(value.quantity) > 0 && Number(value.quantity) <= 99;
 }
 

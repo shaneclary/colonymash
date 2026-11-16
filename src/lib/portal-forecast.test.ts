@@ -94,3 +94,17 @@ test("inventory edits require bounded nonnegative numbers", () => {
   assert.equal(changePlannedBatches(state, "demo-cherry", 2.5), state);
   assert.equal(updateIngredient(state, "fruit", "onHand", 9).ingredients.find(i => i.id === "fruit")?.onHand, 9);
 });
+
+
+test("full archive is browseable, but example unavailable formats cannot be ordered", async () => {
+  const { drinks } = await import("../content/drinks.ts");
+  const { demoTradeStatus, demoStatusText } = await import("../content/portal-demo.ts");
+  assert.equal(demoProducts.length, drinks.length);
+  assert.equal(demoTradeStatus("coconut-horchata","keg"),"unavailable");
+  assert.equal(demoTradeStatus("pink-lightning","keg"),"special_order");
+  assert.match(demoStatusText("unavailable","keg"),/Unavailable in kegs/);
+  assert.deepEqual(sanitizeTradeLines([
+    {productId:"coconut-horchata",format:"keg",quantity:3},
+    {productId:"coconut-horchata",format:"six_pack",quantity:2},
+  ]),[{productId:"coconut-horchata",format:"six_pack",quantity:2}]);
+});

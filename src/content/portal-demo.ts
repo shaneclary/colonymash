@@ -3,6 +3,8 @@
  * No value in this file is an owner-approved stock level, recipe, price,
  * supplier, customer account, licensing status or delivery commitment.
  */
+import { drinks } from "./drinks.ts";
+
 export type PortalRole = "admin" | "merchant";
 export type PackFormat = "can" | "six_pack" | "keg";
 export type TradeOrderStatus = "requested" | "accepted" | "scheduled" | "fulfilled" | "cancelled";
@@ -39,11 +41,46 @@ export const demoAccounts = [
 ] as const;
 export const merchantDemoId = "coastal-partner-demo";
 
-export const demoProducts: Product[] = [
-  { id: "cherry-limeade", name: "Cherry Limeade", kind: "seltzer", color: "red", recipeId: "demo-cherry", description: "Listed Colony Mash release; all trade inventory and recipes below are fictitious." },
-  { id: "purple-reign", name: "Purple Reign", kind: "seltzer", color: "purple", recipeId: "demo-purple", description: "Listed Colony Mash release; all trade inventory and recipes below are fictitious." },
-  { id: "rickys-rice-lager", name: "Ricky's Rice Lager", kind: "beer", recipeId: "demo-lager", description: "Listed Colony Mash release; all trade inventory and recipes below are fictitious." },
-];
+/** Full 35-release history for browsing. This is not a live trade catalog or stock feed. */
+export const demoProducts: Product[] = drinks.map(drink => ({
+  id: drink.slug,
+  name: drink.name,
+  kind: drink.kind,
+  color: drink.kind === "seltzer" ? drink.flavor : undefined,
+  recipeId: ({
+    "cherry-limeade": "demo-cherry",
+    "purple-reign": "demo-purple",
+    "rickys-rice-lager": "demo-lager",
+  } as Record<string,string>)[drink.slug] ?? "",
+  description: (drink.style || (drink.kind==="seltzer"?"Hard seltzer":"Beer")) +
+    " · Archived release. Package options below are illustrative, not confirmed availability.",
+}));
+export type DemoTradeStatus = "request" | "special_order" | "unavailable";
+/**
+ * Illustrative per-package merchandising labels.
+ * NO badge is a statement about Colony Mash's actual wholesale availability.
+ * Actual SKUs/statuses must come from Erik's approved inventory & merchandising data.
+ */
+const examplePackageExceptions: Partial<Record<string,Partial<Record<PackFormat,DemoTradeStatus>>>> = {
+  "coconut-horchata": { keg: "unavailable", six_pack: "special_order" },
+  "pink-lightning": { keg: "special_order" },
+  "painkiller": { keg: "special_order" },
+  "mexican-imperial-stout": { keg: "special_order", can: "unavailable" },
+  "cabana-punch": { keg: "unavailable", six_pack: "special_order" },
+  "kiwi-canoe": { keg: "special_order" },
+  "sicilian-lemonade": { keg: "unavailable" },
+  "boysenberry-vanilla": { keg: "special_order" },
+  "super-soft-birthday": { six_pack: "special_order" },
+};
+export function demoTradeStatus(productId:string,format:PackFormat): DemoTradeStatus {
+  return examplePackageExceptions[productId]?.[format] ?? "request";
+}
+export function demoStatusText(status:DemoTradeStatus,format:PackFormat):string {
+  return status==="unavailable"
+    ? ("Unavailable in " + (format==="keg"?"kegs":format==="six_pack"?"6-packs":"single cans") + " (demo)")
+    : status==="special_order" ? "Special order only (demo)" : "Request availability";
+}
+
 export const demoRecipes: Recipe[] = [
   { id: "demo-cherry", name: "Illustrative Cherry Limeade process", yieldLiters: 200,
     bill: [{ ingredientId: "base", perBatch: 25 }, { ingredientId: "fruit", perBatch: 14 }, { ingredientId: "nutrient", perBatch: 1 }, { ingredientId: "co2", perBatch: 2 }] },

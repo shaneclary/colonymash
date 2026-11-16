@@ -77,3 +77,12 @@ Review the prototype; do not use these sample logins as real business accounts.
 **Security limitation:** Demo inventory belongs to fictional venues and is stored in localStorage. There is no real multi-tenant authorization or merchant-private server data. Production requires secure identity, tenant-enforced database access, verified orders, and physical inventory reconciliation.
 
 **Suggested test:** Merchant → My inventory → record use / change par → build suggested reorder → schedule 4 biweekly requests → Admin → Merchant Accounts / Orders → accept, schedule and fulfill a sample request → Merchant → Order history → Receive into my inventory.
+
+
+## V2.1 trade UI polish and full archive review
+- The merchant's fixed bottom actions are **Order** and **Schedule**; the consumer website's "On tap / Cans & kegs" bar no longer appears on portal routes.
+- The trade catalog includes **all 35 historically cataloged brewery releases**, with search and Beer/Seltzer filters. This is an archive, NOT a live wholesale catalog.
+- Every package variant has an **illustrative, explicitly unverified** status: "Request availability", "Special order only (demo)", or "Unavailable in [format] (demo)". Unavailable *demo* variants cannot be added in the merchant cart.
+- These statuses are SAMPLE configuration for UI review, **not actual brewery packaging or supply claims**; Erik must supply real eligibility, SKUs and availability before merchant sales go live.
+- Existing merchant-inventory rows remain manageable by showing tracked products first; users can add any historical product/packaging format from the full collection to their simulated venue inventory.
+- All future dates remain requests for review; no automatic processing, checkout, supplier ordering, merchant data security or stock synchronization has been added.

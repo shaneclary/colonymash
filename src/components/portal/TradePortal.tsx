@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import {
-  demoProducts, merchantDemoId, plusDays,
+  demoProducts, demoTradeStatus, demoStatusText, merchantDemoId, plusDays,
   type MerchantStock, type PackFormat, type TradeLine,
 } from "@/content/portal-demo";
 import {
@@ -35,13 +35,13 @@ const dateLabel=(iso:string)=>{
 const productName=(id:string)=>demoProducts.find(p=>p.id===id)?.name ?? id;
 const packName=(format:PackFormat)=>merchantFormats.find(f=>f.id===format)?.label ?? format;
 
-function Stepper({value,onChange,label}:{
-  value:number; onChange:(delta:number)=>void;label:string;
+function Stepper({value,onChange,label,disableAdd=false}:{
+  value:number; onChange:(delta:number)=>void;label:string;disableAdd?:boolean;
 }){
   return <div className="cm-portal__stepper">
     <button type="button" disabled={value<=0} onClick={()=>onChange(-1)} aria-label={"Remove "+label}>−</button>
     <output aria-label={label+" quantity"}>{value}</output>
-    <button type="button" disabled={value>=99} onClick={()=>onChange(1)} aria-label={"Add "+label}>+</button>
+    <button type="button" disabled={value>=99||disableAdd} onClick={()=>onChange(1)} aria-label={"Add "+label}>+</button>
   </div>;
 }
 
@@ -59,6 +59,10 @@ function QuantityField({value,onChange,label,step=1,min=0,max=10000}:{
 export function TradePortal(){
   const {state,setState,loaded}=useDemoLedger();
   const [view,setView]=useState<View>("inventory");
+  const [catalogSearch,setCatalogSearch]=useState("");
+  const [catalogKind,setCatalogKind]=useState<"all"|"beer"|"seltzer">("all");
+  const [trackProduct,setTrackProduct]=useState(demoProducts[0]?.id??"");
+  const [trackFormat,setTrackFormat]=useState<PackFormat>("six_pack");
   const [cart,setCart]=useState<TradeLine[]>([]);
   const [date,setDate]=useState(()=>plusDays(14));
   const [notes,setNotes]=useState("");
@@ -78,11 +82,22 @@ export function TradePortal(){
   const pending=orders.filter(o=>o.status==="requested");
   const awaitingDelivery=orders.filter(o=>o.status==="fulfilled"&&!state.merchantReceipts.some(r=>r.orderId===o.id&&r.merchantId===merchantDemoId));
   const low=forecasts.filter(x=>x.status==="low");
-  const restock=forecasts.filter(x=>x.suggested>0&&x.stock.targetStock>0);
+  const restock=forecasts.filter(x=>x.suggested>0&&x.stock.targetStock>0&&
+    demoTradeStatus(x.stock.productId,x.stock.format)!=="unavailable");
   const units=cart.reduce((sum,x)=>sum+x.quantity,0);
-  const countTracked=forecasts.filter(x=>x.stock.targetStock>0||x.stock.onHand>0).length;
+  const trackedRows=forecasts.filter(x=>x.stock.targetStock>0||x.stock.minStock>0||
+    x.stock.weeklyUse>0||x.stock.onHand>0||x.inbound>0);
+  const countTracked=trackedRows.length;
+  const trackedProducts=demoProducts.filter(product=>trackedRows.some(x=>x.stock.productId===product.id));
+  const visibleCatalog=demoProducts.filter(product=>
+    (catalogKind==="all"||catalogKind===product.kind)&&
+    (!catalogSearch.trim()||[product.name,product.description].join(" ").toLowerCase().includes(catalogSearch.trim().toLowerCase())));
 
   function modifyCart(productId:string,format:PackFormat,delta:number){
+    if(delta>0&&demoTradeStatus(productId,format)==="unavailable"){
+      setFeedback("That package is marked unavailable in this DEMO. Ask Erik for real wholesale terms.");
+      return;
+    }
     setCart(current=>updateTradeCart(current,productId,format,delta));
     setFeedback("");
   }
@@ -166,7 +181,7 @@ export function TradePortal(){
 
     {view==="inventory"&&<>
       <section className="cm-portal__metrics" aria-label="Merchant stock summary">
-        <div><span>Tracked formats</span><strong>{countTracked}</strong><small>Of 9 demo SKU/format combinations</small></div>
+        <div><span>Tracked formats</span><strong>{countTracked}</strong><small>Of {demoProducts.length*merchantFormats.length} historical-release format combinations</small></div>
         <div><span>Needs attention</span><strong>{low.length}</strong><small>Below minimum or lead-time coverage</small></div>
         <div><span>Upcoming requests</span><strong>{pending.length}</strong><small>Not yet approved by brewery</small></div>
         <div><span>Ready to receive</span><strong>{awaitingDelivery.length}</strong><small>Staff marked fulfilled; not counted in stock</small></div>
@@ -176,8 +191,28 @@ export function TradePortal(){
           <h2>Counts, par levels & reorder alerts</h2></div>
           <button type="button" onClick={suggestedToCart}>Build suggested reorder ↗</button></div>
         <p className="cm-portal__muted">These are your venue's stock counts—not Colony Mash brewery stock. Adjust an on-hand count, log sell-through, and set your minimum and target quantity for each package format. Incoming counts refer only to accepted/scheduled sample orders, not guaranteed shipments.</p>
+        <div className="cm-portal__track-new">
+          <div><strong>Track another archived release</strong>
+            <p className="cm-portal__muted">All 35 releases can be added to your venue inventory. Products without counts or par levels stay out of the main stock dashboard.</p></div>
+          <label>Flavor
+            <select value={trackProduct} onChange={e=>setTrackProduct(e.target.value)}>
+              {demoProducts.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </label>
+          <label>Package
+            <select value={trackFormat} onChange={e=>setTrackFormat(e.target.value)}>
+              {merchantFormats.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}
+            </select>
+          </label>
+          <button className="cm-portal__button cm-portal__button--dark" type="button" onClick={()=>{
+            if(!trackProduct)return;
+            setState(current=>editMerchantStock(current,merchantDemoId,trackProduct,trackFormat,"targetStock",
+              Math.max(1,merchantInventoryRow(current,merchantDemoId,trackProduct,trackFormat).targetStock)));
+            setFeedback("This historical product is now tracked in your simulated venue inventory.");
+          }}>Track item ↗</button>
+        </div>
         <div className="cm-portal__merchant-inventory">
-          {demoProducts.map(product=><section key={product.id} className="cm-portal__stock-group">
+          {trackedProducts.map(product=><section key={product.id} className="cm-portal__stock-group">
             <h3><span className={"cm-portal__stock-dot "+(product.kind==="seltzer"?"cm-fill--"+product.color:"cm-fill--b2")} aria-hidden="true"/>
               {product.name}</h3>
             <div className="cm-portal__stock-rows">{merchantFormats.map(({id:format,label})=>{
@@ -234,8 +269,21 @@ export function TradePortal(){
       <section className="cm-portal__panel">
         <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">REPLENISHMENT / WHOLESALE DEMO</p>
           <h2>Choose products to reorder</h2></div><span>{demoProducts.length} sample releases</span></div>
-        <p className="cm-portal__muted">Create a one-time request or schedule future occurrences. Neither option is a paid or accepted order. Packaging, prices, brewery stock and trade eligibility must be verified.</p>
-        <div className="cm-portal__catalog">{demoProducts.map(product=><article key={product.id} className="cm-portal__product">
+        <p className="cm-portal__muted">Browse all {demoProducts.length} recorded Colony Mash releases. Package badges are <strong>examples only</strong>: “Request availability”, “Special order only”, or “Unavailable in keg” are NOT verified by Erik. A future live catalog requires actual SKU, packaging and inventory confirmation. No checkout or live reservations.</p>
+        <div className="cm-portal__catalog-filter">
+          <label htmlFor="merchant-catalog-search">Find a flavor
+            <input type="search" id="merchant-catalog-search" value={catalogSearch}
+              onChange={e=>setCatalogSearch(e.target.value)}
+              placeholder="Search the full release library…"/>
+          </label>
+          <div role="group" aria-label="Filter trade releases" className="cm-portal__catalog-filter-buttons">
+            {([["all","All releases"],["seltzer","Seltzers"],["beer","Beer"]] as const).map(([key,label])=>
+              <button type="button" key={key} aria-pressed={catalogKind===key} onClick={()=>setCatalogKind(key)}>{label}</button>)}
+          </div>
+          <p className="cm-portal__muted">{visibleCatalog.length} of {demoProducts.length} historical releases · format labels are illustrative and must be configured by Erik.</p>
+        </div>
+        {visibleCatalog.length===0 && <p className="cm-portal__muted">No releases match those filters. Try another flavor name or choose All releases.</p>}
+        <div className="cm-portal__catalog">{visibleCatalog.map(product=><article key={product.id} className="cm-portal__product">
           <span className={"cm-portal__product-stripe "+(product.kind==="seltzer"?"cm-fill--"+product.color:"cm-fill--b2")} aria-hidden="true"/>
           <div className="cm-portal__product-info"><p className="cm-portal__overline">{product.kind==="seltzer"?"HARD SELTZER":"BEER"}</p>
             <h3>{product.name}</h3><p>{product.description}</p></div>
@@ -243,9 +291,18 @@ export function TradePortal(){
             const stock=merchantInventoryRow(state,merchantDemoId,product.id,format);
             const brewery=finishedUnitAvailability(state,product.id,format);
             const q=quantityForTrade(cart,product.id,format);
-            return <div className="cm-portal__pack" key={format}>
-              <div><strong>{label}</strong><small>Your count: {stock.onHand} · Brewery DEMO stock: {brewery.stock}</small></div>
-              <Stepper value={q} label={label+" of "+product.name} onChange={delta=>modifyCart(product.id,format,delta)}/>
+            const status=demoTradeStatus(product.id,format);
+            return <div className={"cm-portal__pack cm-portal__pack--"+status} key={format}>
+              <div><strong>{label}</strong>
+                <span className={"cm-portal__package-status cm-portal__package-status--"+status}>
+                  {demoStatusText(status,format)}
+                </span>
+                <small>Your venue: {stock.onHand} · {brewery.stock>0?
+                  "Example brewery stock: "+brewery.stock:"No example brewery stock assigned"}</small>
+              </div>
+              {status==="unavailable"?<span className="cm-portal__not-offered">Not selectable in demo</span>:
+                <Stepper value={q} label={label+" of "+product.name}
+                  onChange={delta=>modifyCart(product.id,format,delta)}/>}
             </div>;
           })}</div>
         </article>)}</div>
@@ -423,6 +480,18 @@ export function TradePortal(){
       </section>
     </div>}
 
+    <nav className="cm-portal__trade-actions" aria-label="Primary merchant actions">
+      <button type="button" className={view==="catalog"?"cm-portal__trade-action--active":""}
+        aria-current={view==="catalog"?"page":undefined}
+        onClick={()=>{setView("catalog");setFeedback("");}}>
+        <span>Order</span><small>{units>0?units+" selected":"Build request"}</small>
+      </button>
+      <button type="button" className={view==="schedule"?"cm-portal__trade-action--active":""}
+        aria-current={view==="schedule"?"page":undefined}
+        onClick={()=>{setView("schedule");setFeedback("");}}>
+        <span>Schedule</span><small>Plan future orders</small>
+      </button>
+    </nav>
     <p className="cm-portal__demo-note">THIS IS FICTIONAL MERCHANT INVENTORY. ACCOUNTS ARE NOT SECURE OR ISOLATED SERVER-SIDE. NO STOCK, PAYMENTS, WHOLESALE APPROVAL OR BACKGROUND ORDERING OCCURS. <a href="/portal">Sample logins ↗</a></p>
   </PortalFrame>;
 }
