@@ -152,6 +152,12 @@ export const questions = [
     assumed: "The trade portal uses a publicly visible fake sample account and creates browser-only simulated requests; no legal trade authorization or real customer order exists.",
     file: "src/components/portal/TradePortal.tsx; docs/PORTAL_DEMO.md",
   },
+  {
+    id: "referral",
+    ask: "Do you want a wholesale referral bonus: 3% of what a referred account buys, paid to the referring account in product? If yes: counted on invoice value or volume, for how long, and has ABC or your alcohol counsel cleared it?",
+    assumed: "Shane proposed it. The demo counts 3% of filled volume because it has no prices. California Business and Professions Code section 25600 limits premiums, gifts and free goods given with alcohol sales, so the program is shown as proposed and is not offered.",
+    file: "src/content/portal-demo.ts; src/lib/referrals.ts",
+  },
 ] as const satisfies readonly Question[];
 
 export type QuestionId = (typeof questions)[number]["id"];

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  demoPackVolumes, demoProducts, demoRecipes, merchantDemoId, plusDays,
+  demoMerchants, demoPackVolumes, demoProducts, demoRecipes, plusDays, referralProgram,
   type TradeOrder, type TradeOrderStatus, type PackFormat,
 } from "@/content/portal-demo";
 import {
@@ -12,15 +12,21 @@ import {
   updateIngredient,
 } from "@/lib/portal-forecast";
 import { merchantStockForecast } from "@/lib/merchant-operations";
+import { trackOrder } from "@/lib/order-tracking";
+import { referralLedger } from "@/lib/referrals";
+import { Confirm } from "@/components/Confirm";
+import { OrderTracker } from "./OrderTracker";
+import { liters } from "./ReferralPanel";
 import { PortalFrame } from "./PortalFrame";
 import { useDemoLedger } from "./useDemoPortal";
 
-type View = "overview" | "orders" | "ingredients" | "production" | "finished" | "partners";
+type View = "overview" | "orders" | "ingredients" | "production" | "finished" | "partners" | "referrals";
 const tabs: { id: View; label: string }[] = [
   { id: "overview", label: "Overview" }, { id: "orders", label: "Orders" },
   { id: "ingredients", label: "Ingredients" }, { id: "production", label: "Production & recipes" },
   { id: "finished", label: "Packaged stock" },
   { id: "partners", label: "Merchant accounts" },
+  { id: "referrals", label: "Referrals" },
 ];
 const formatLabels: Record<PackFormat, string> = {
   can: "Single cans (demo)", six_pack: "6-packs (demo)", keg: "Kegs (demo)",
@@ -57,10 +63,9 @@ export function AdminPortal() {
   const {state,setState,loaded,reset,updateFinished} = useDemoLedger();
   const [view,setView] = useState<View>("overview");
   const today = plusDays(0);
-  const merchantViews = [
-    { id: merchantDemoId, name: "Coastal Partner — Demo" },
-    { id: "venue-demo", name: "Sample Events Venue — Demo" },
-  ];
+  const merchantViews = demoMerchants;
+  const merchantName = (id: string) => demoMerchants.find(x => x.id === id)?.name ?? id;
+  const ledger = useMemo(() => referralLedger(state),[state]);
   const forecasts = useMemo(() => ingredientForecast(state,today),[state,today]);
   const production = useMemo(() => productionEstimates(state),[state]);
   const requested = state.orders.filter(o => o.status === "requested");
@@ -71,7 +76,7 @@ export function AdminPortal() {
   const upcoming = [...state.orders].filter(o => ["requested","accepted","scheduled"].includes(o.status))
     .sort((a,b)=>a.neededBy.localeCompare(b.neededBy));
 
-  function changeOrder(id: string, status: TradeOrderStatus) {setState(current=>transitionOrder(current,id,status));}
+  function changeOrder(id: string, status: TradeOrderStatus) {setState(current=>transitionOrder(current,id,status,today));}
   function addIncoming(id: string, suggestedOrder: number) {
     const item = state.ingredients.find(i=>i.id===id);
     if (!item || suggestedOrder <= 0) return;
@@ -132,7 +137,8 @@ export function AdminPortal() {
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">TRADE PIPELINE / SANDBOX</p><h2>Upcoming & historical orders</h2></div><span>{state.orders.length} total</span></div>
       <p className="cm-portal__muted">New merchant submissions arrive as <strong>Requested</strong>. Only Accepted and Scheduled orders enter production demand and stock reservations. Status changes here do not send emails or dispatch anything.</p>
       <div className="cm-portal__orderlist">{[...state.orders].sort((a,b)=>a.neededBy.localeCompare(b.neededBy)).map(order=><article key={order.id} className="cm-portal__order">
-        <div className="cm-portal__order-top"><div><span className="cm-portal__overline">{order.id} · needed {dayLabel(order.neededBy)}</span><h3>{order.merchantName}</h3></div><StatusLabel status={order.status}/></div>
+        <div className="cm-portal__order-top"><div><span className="cm-portal__overline">{order.id} · needed {dayLabel(order.neededBy)}{order.bonus?" · referral bonus, no charge":""}</span><h3>{order.merchantName}</h3></div><StatusLabel status={order.status}/></div>
+        <OrderTracker tracking={trackOrder(state,order,today)}/>
         <p>{formatOrder(order)}</p>
         {order.notes && <p className="cm-portal__muted">{order.notes}</p>}
         <div className="cm-portal__order-actions">
@@ -263,6 +269,39 @@ export function AdminPortal() {
         </div>;
       })}
       <p className="cm-portal__muted">*Inbound means an accepted/scheduled sample request within the venue's lead-time window, not a confirmed shipment. Existing pending requests require separate approval in the Orders tab.</p>
+    </section>}
+
+    {view==="referrals" && <section className="cm-portal__panel">
+      <div className="cm-portal__panel-head">
+        <div><p className="cm-portal__overline">Referral bonus / proposed</p><h2>Referral ledger</h2></div>
+        <Confirm id="referral"/>
+      </div>
+      <p>{referralProgram.summary}</p>
+      <p className="cm-portal__muted">{referralProgram.basis} <strong>{referralProgram.status}</strong> Credit builds when you mark a referred account's order fulfilled. Bonus product arrives in Orders as a no-charge request.</p>
+      {ledger.length===0 && <p className="cm-portal__muted">No referrals yet.</p>}
+      {ledger.map(account=><div className="cm-portal__partner" key={account.merchantId}>
+        <div className="cm-portal__panel-head">
+          <div><p className="cm-portal__overline">Referring account</p><h2>{merchantName(account.merchantId)}</h2></div>
+          <strong>{liters(account.balanceMl)} owed in product</strong>
+        </div>
+        <div className="cm-portal__tablewrap"><table className="cm-portal__table cm-portal__table--finished">
+          <thead><tr><th>Referred business</th><th>Status</th><th>Since</th><th>Filled</th><th>Credit at {referralProgram.ratePercent}%</th></tr></thead>
+          <tbody>{account.rows.map(row=><tr key={row.referral.id}>
+            <th scope="row">{row.referral.referredName}</th>
+            <td>{row.referral.status==="active"?"Active account":"Invited, no account yet"}</td>
+            <td>{dayLabel(row.referral.invitedAt)}</td>
+            <td>{liters(row.filledMl)}</td><td><strong>{liters(row.earnedMl)}</strong></td>
+          </tr>)}</tbody>
+          <tfoot><tr><th scope="row" colSpan={2}>Earned {liters(account.earnedMl)}</th>
+            <td colSpan={2}>Used {liters(account.redeemedMl)}</td><td><strong>Owed {liters(account.balanceMl)}</strong></td></tr></tfoot>
+        </table></div>
+        <div><h3 className="cm-portal__partner-sub">Bonus product requests</h3>
+          {account.bonusOrders.length===0?<p className="cm-portal__muted">None yet.</p>:
+            account.bonusOrders.map(order=><div className="cm-portal__upcoming" key={order.id}>
+              <div><span>{order.id} · needed {dayLabel(order.neededBy)}</span><strong>{formatOrder(order)}</strong></div>
+              <StatusLabel status={order.status}/></div>)}
+        </div>
+      </div>)}
     </section>}
 
     <div className="cm-portal__demo-note">THIS IS A FICTIONAL PLANNING SANDBOX — NOT A LIVE INVENTORY, PURCHASE ORDER, OR MERCHANT AUTHORIZATION SYSTEM. <Link href="/portal">Sample logins ↗</Link></div>

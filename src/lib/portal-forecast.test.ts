@@ -11,7 +11,7 @@ const date = new Date("2026-11-15T12:00:00");
 const today = "2026-11-15";
 test("demo fixtures are intentionally non-live and contain coherent recipes", () => {
   const state = demoSeed(date);
-  assert.equal(state.version, 2);
+  assert.equal(state.version, 3);
   assert.equal(demoProducts.length, 35);
   for (const recipe of demoRecipes) {
     assert.ok(recipe.yieldLiters > 0);

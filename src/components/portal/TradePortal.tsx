@@ -15,15 +15,21 @@ import {
   merchantStockForecast, receiveMerchantOrder, recordMerchantCount,
   recordMerchantUsage, setSeriesActive,
 } from "@/lib/merchant-operations";
+import { findOrder, trackOrder } from "@/lib/order-tracking";
+import { referralSummary } from "@/lib/referrals";
+import { OrderTracker } from "./OrderTracker";
+import { ReferralPanel, liters } from "./ReferralPanel";
 import { PortalFrame } from "./PortalFrame";
 import { useDemoLedger } from "./useDemoPortal";
 
-type View = "inventory" | "catalog" | "schedule" | "requests" | "activity" | "account";
+type View = "inventory" | "catalog" | "schedule" | "requests" | "referrals" | "activity" | "account";
+type OrderFilter = "open" | "closed" | "all";
 const sections: {id:View;label:string}[]=[
   {id:"inventory",label:"My inventory"},
   {id:"catalog",label:"Reorder & catalog"},
   {id:"schedule",label:"Future orders"},
-  {id:"requests",label:"Order history"},
+  {id:"requests",label:"Track orders"},
+  {id:"referrals",label:"Referrals"},
   {id:"activity",label:"Stock activity"},
   {id:"account",label:"Account"},
 ];
@@ -74,6 +80,8 @@ export function TradePortal(){
   const [countEdits,setCountEdits]=useState<Record<string,string>>({});
   const [saleEdits,setSaleEdits]=useState<Record<string,string>>({});
   const [orderDates,setOrderDates]=useState<Record<string,string>>({});
+  const [orderFilter,setOrderFilter]=useState<OrderFilter>("open");
+  const [orderQuery,setOrderQuery]=useState("");
   const today=plusDays(0);
   const forecasts=useMemo(()=>merchantStockForecast(state,merchantDemoId,today),[state,today]);
   const orders=useMemo(()=>merchantOrders(state,merchantDemoId),[state]);
@@ -81,6 +89,15 @@ export function TradePortal(){
   const movements=state.merchantMovements.filter(x=>x.merchantId===merchantDemoId);
   const pending=orders.filter(o=>o.status==="requested");
   const awaitingDelivery=orders.filter(o=>o.status==="fulfilled"&&!state.merchantReceipts.some(r=>r.orderId===o.id&&r.merchantId===merchantDemoId));
+  const isReceived=(orderId:string)=>state.merchantReceipts.some(r=>r.orderId===orderId&&r.merchantId===merchantDemoId);
+  const isOpen=(o:{id:string;status:string})=>o.status==="requested"||o.status==="accepted"||o.status==="scheduled"||
+    (o.status==="fulfilled"&&!isReceived(o.id));
+  const openOrders=orders.filter(isOpen);
+  const foundOrder=findOrder(state,merchantDemoId,orderQuery);
+  const shownOrders=orderQuery.trim()?(foundOrder?[foundOrder]:[]):
+    [...orders].filter(o=>orderFilter==="all"||(orderFilter==="open")===isOpen(o))
+      .sort((a,b)=>orderFilter==="open"?a.neededBy.localeCompare(b.neededBy):b.neededBy.localeCompare(a.neededBy));
+  const credit=referralSummary(state,merchantDemoId);
   const low=forecasts.filter(x=>x.status==="low");
   const restock=forecasts.filter(x=>x.suggested>0&&x.stock.targetStock>0&&
     demoTradeStatus(x.stock.productId,x.stock.format)!=="unavailable");
@@ -130,8 +147,8 @@ export function TradePortal(){
       return next;
     });
     // The visible message describes a client-side request, never a real submission.
-    setCart([]);setNotes("");setView("requests");
-    setFeedback(saved?"Sample request recorded. Erik's demo can review it.":"Sample request queued locally; check Order history.");
+    setCart([]);setNotes("");setOrderFilter("open");setOrderQuery("");setView("requests");
+    setFeedback(saved?"Sample request recorded. Erik's demo can review it.":"Sample request queued locally; check Track orders.");
   }
   function submitSeries(event:FormEvent<HTMLFormElement>){
     event.preventDefault();
@@ -183,7 +200,7 @@ export function TradePortal(){
       <section className="cm-portal__metrics" aria-label="Merchant stock summary">
         <div><span>Tracked formats</span><strong>{countTracked}</strong><small>Of {demoProducts.length*merchantFormats.length} historical-release format combinations</small></div>
         <div><span>Needs attention</span><strong>{low.length}</strong><small>Below minimum or lead-time coverage</small></div>
-        <div><span>Upcoming requests</span><strong>{pending.length}</strong><small>Not yet approved by brewery</small></div>
+        <div><span>Open orders</span><strong>{openOrders.length}</strong><small>{pending.length} waiting on the brewery</small></div>
         <div><span>Ready to receive</span><strong>{awaitingDelivery.length}</strong><small>Staff marked fulfilled; not counted in stock</small></div>
       </section>
       <section className="cm-portal__panel">
@@ -402,22 +419,39 @@ export function TradePortal(){
     </>}
 
     {view==="requests"&&<section className="cm-portal__panel">
-      <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">WHOLESALE ORDER PIPELINE</p>
-        <h2>Requests, deliveries & reorders</h2></div><span>{orders.length} total</span></div>
-      <p className="cm-portal__muted">You can change dates or cancel your own Requested entries. Accepted/Scheduled entries are controlled by staff. Once marked Fulfilled, choose Receive to add delivered units to your venue inventory; this prevents double-counting.</p>
-      <div className="cm-portal__orderlist">{[...orders].sort((a,b)=>b.neededBy.localeCompare(a.neededBy)).map(o=>{
+      <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Order tracking</p>
+        <h2>Where every order stands</h2></div><span>{openOrders.length} open · {orders.length} total</span></div>
+      <p className="cm-portal__muted">Each order moves through five stages. You can move or cancel an order while it is Requested. After that the brewery moves it. When it is Filled, receive it to add the units to your stock.</p>
+      <div className="cm-portal__catalog-filter">
+        <label htmlFor="order-lookup">Find an order by number
+          <input id="order-lookup" type="search" value={orderQuery} placeholder="DEMO-1001"
+            onChange={e=>setOrderQuery(e.target.value)}/>
+        </label>
+        <div role="group" aria-label="Filter orders" className="cm-portal__catalog-filter-buttons">
+          {([["open","Open"],["closed","Closed"],["all","All"]] as const).map(([key,label])=>
+            <button type="button" key={key} aria-pressed={!orderQuery.trim()&&orderFilter===key}
+              onClick={()=>{setOrderFilter(key);setOrderQuery("");}}>{label}</button>)}
+        </div>
+      </div>
+      {shownOrders.length===0&&<p className="cm-portal__muted">{orderQuery.trim()
+        ?"No single order on this account matches that number."
+        :orderFilter==="open"?"No open orders.":"No orders here yet."}</p>}
+      <div className="cm-portal__orderlist">{shownOrders.map(o=>{
         const received=state.merchantReceipts.find(r=>r.orderId===o.id&&r.merchantId===merchantDemoId);
         return <article key={o.id} className="cm-portal__order">
-          <div className="cm-portal__order-top"><div><p className="cm-portal__overline">{o.id} · {dateLabel(o.neededBy)}</p>
-            <h3>{o.seriesId?"Scheduled replenishment":"Wholesale request"}</h3></div>
+          <div className="cm-portal__order-top"><div><p className="cm-portal__overline">{o.id} · wanted {dateLabel(o.neededBy)}</p>
+            <h3>{o.bonus?"Referral bonus product":o.seriesId?"Scheduled replenishment":"Wholesale request"}</h3></div>
             <span className={"cm-portal__status cm-portal__status--"+o.status}>{o.status}</span></div>
+          <OrderTracker tracking={trackOrder(state,o,today)}/>
           <ul className="cm-portal__bill">{o.lines.map(l=><li key={l.productId+l.format}>
             <span>{productName(l.productId)} · {packName(l.format)}</span><strong>× {l.quantity}</strong>
           </li>)}</ul>
           {o.notes&&<p className="cm-portal__muted">{o.notes}</p>}
           <div className="cm-portal__order-actions">
-            <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines)}>Reorder / copy ↗</button>
-            <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines,"schedule")}>Use in new schedule ↗</button>
+            {!o.bonus&&<>
+              <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines)}>Reorder / copy ↗</button>
+              <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines,"schedule")}>Use in new schedule ↗</button>
+            </>}
             {o.status==="requested"&&<>
               <label className="cm-portal__order-date">Change requested date
                 <input type="date" min={today} value={orderDates[o.id]??o.neededBy}
@@ -431,17 +465,20 @@ export function TradePortal(){
               <button type="button" className="cm-portal__button" onClick={()=>{
                 if(window.confirm("Cancel this pending sample request?")) {
                   setState(s=>cancelRequestedMerchantOrder(s,merchantDemoId,o.id));
-                  setFeedback("Cancelled pending request. Existing schedules remain separately editable.");
+                  setFeedback(o.bonus?"Cancelled. The referral credit is back in your balance.":"Cancelled pending request. Existing schedules remain separately editable.");
                 }
               }}>Cancel request</button>
             </>}
             {o.status==="fulfilled"&&!received&&<button type="button" className="cm-portal__button cm-portal__button--dark"
               onClick={()=>handleReceive(o.id)}>Receive into my inventory ↗</button>}
-            {received&&<span className="cm-portal__status cm-portal__status--fulfilled">Received {dateLabel(received.receivedAt)}</span>}
           </div>
         </article>;
       })}</div>
     </section>}
+
+    {view==="referrals"&&<ReferralPanel state={state} setState={setState} merchantId={merchantDemoId}
+      company={company} today={today} onFeedback={setFeedback}
+      onTrack={()=>{setOrderFilter("open");setOrderQuery("");setView("requests");}}/>}
 
     {view==="activity"&&<section className="cm-portal__panel">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">YOUR VENUE'S STOCK LEDGER</p>
@@ -465,6 +502,7 @@ export function TradePortal(){
           <dt>Inventory ownership</dt><dd>Buyer-entered venue stock, not brewery stock</dd>
           <dt>Wholesale authorization</dt><dd>Not implemented</dd>
           <dt>Recurring purchasing</dt><dd>Dated review requests, not automatic purchases</dd>
+          <dt>Referral credit</dt><dd>{liters(credit.balanceMl)} available (proposed program)</dd>
           <dt>Authentication</dt><dd>Public sample login; not secure</dd>
         </dl></section>
       <section className="cm-portal__panel"><p className="cm-portal__overline">HOW TO USE THIS WORKSPACE</p>
@@ -474,7 +512,8 @@ export function TradePortal(){
           <li>Log sell-through or perform a physical count when stock changes.</li>
           <li>Review the low-stock list and load suggested quantities into your reorder cart.</li>
           <li>Submit a dated wholesale request, or queue 2–6 future requests on a rhythm.</li>
-          <li>Mark a fulfilled order received to increase your own stock ledger once.</li>
+          <li>Follow each order under Track orders, and receive it once it is Filled.</li>
+          <li>Refer another wholesale account and take the bonus in product.</li>
         </ol>
         <p className="cm-portal__muted">Real production would require per-merchant secure accounts and automated data sync if the buyer wants POS sales to update stock.</p>
       </section>

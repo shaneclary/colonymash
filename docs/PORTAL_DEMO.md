@@ -86,3 +86,18 @@ Review the prototype; do not use these sample logins as real business accounts.
 - These statuses are SAMPLE configuration for UI review, **not actual brewery packaging or supply claims**; Erik must supply real eligibility, SKUs and availability before merchant sales go live.
 - Existing merchant-inventory rows remain manageable by showing tracked products first; users can add any historical product/packaging format from the full collection to their simulated venue inventory.
 - All future dates remain requests for review; no automatic processing, checkout, supplier ordering, merchant data security or stock synchronization has been added.
+
+
+## V2.2 order tracking and proposed referral bonus
+- **Track orders** (merchant) replaces Order history. Every order shows five stages: Requested, Accepted, Scheduled, Filled, Received, with the date each was reached and who moves it next. Filter by Open, Closed or All, or find an order by its number. An open order past its requested date is marked.
+- Staff status changes in Orders are now dated, and the same tracker shows on each staff order.
+- **Referrals** (merchant and staff). A wholesale account refers another. The referring account earns 3% of what the referred account has had filled, paid in product. The merchant takes credit as a no-charge bonus request, which staff approve like any order. Cancelling that request returns the credit.
+- Staff see a referral ledger: each referring account, what its referrals have had filled, credit earned, used and owed.
+
+**Referral model:** credit = floor(3% x millilitres filled for the referred account), counting only Fulfilled orders placed on or after the referral date, and never bonus orders. The demo has no prices, so it counts volume with the illustrative package sizes. Real terms would run on invoice value.
+
+**Referral status: proposed, not offered.** The owners have not approved it. California Business and Professions Code section 25600 limits premiums, gifts and free goods given in connection with alcohol sales, so a bonus paid in product to a licensed retailer needs an ABC or alcohol-counsel check before it is offered. Tracked as the `referral` question at /confirm.
+
+**Limits:** an invited business earns nothing until staff open an account for it, and the demo has no screen for that step. Saved browser data from the earlier demo upgrades in place (ledger version 3).
+
+**Suggested test:** Merchant → Referrals → request 2 6-packs of bonus product → Track orders. Staff → Orders → mark DEMO-1002 fulfilled → Referrals: credit owed rises.

@@ -143,9 +143,11 @@ export function nextOrderStatus(current: TradeOrderStatus, next: TradeOrderStatu
   };
   return permitted[current].includes(next);
 }
-export function transitionOrder(state: DemoState, id: string, status: TradeOrderStatus): DemoState {
+/** Pass `at` (YYYY-MM-DD) to date the change for order tracking. */
+export function transitionOrder(state: DemoState, id: string, status: TradeOrderStatus, at?: string): DemoState {
   return {
-    ...state, orders: state.orders.map(o => o.id === id && nextOrderStatus(o.status, status) ? { ...o, status } : o),
+    ...state, orders: state.orders.map(o => o.id === id && nextOrderStatus(o.status, status)
+      ? { ...o, status, ...(at ? { history: [...(o.history ?? []), { status, at }] } : {}) } : o),
   };
 }
 export function createTradeRequest(
@@ -158,6 +160,7 @@ export function createTradeRequest(
   const order: TradeOrder = {
     id, merchantId, merchantName, neededBy, createdAt,
     lines: clean, status: "requested", notes: notes.slice(0, 500),
+    history: [{ status: "requested", at: createdAt }],
   };
   return { ...state, orders: [order, ...state.orders].slice(0, 100) };
 }

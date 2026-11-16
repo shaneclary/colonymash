@@ -191,7 +191,15 @@ export function upgradeDemoLedger(raw:unknown, seed:DemoState):DemoState|null {
     finished:data.finished as DemoState["finished"],production:data.production as DemoState["production"],
     orders:data.orders as DemoState["orders"],
   };
-  if(data.version!==2 || !Array.isArray(data.merchantStock) || !Array.isArray(data.merchantMovements) ||
+  if((data.version!==2 && data.version!==3) || !Array.isArray(data.merchantStock) || !Array.isArray(data.merchantMovements) ||
     !Array.isArray(data.merchantSeries) || !Array.isArray(data.merchantReceipts))return null;
+  if(data.version===2){
+    // Version 3 adds referrals. Bring in the seed's filled sample orders so the referral demo has credit to show.
+    const saved=data.orders as DemoState["orders"];
+    const history=seed.orders.filter(x=>x.status==="fulfilled" && !saved.some(o=>o.id===x.id));
+    return {...(data as unknown as DemoState),version:3,orders:[...saved,...history],
+      referrals:seed.referrals,referralRedemptions:[]};
+  }
+  if(!Array.isArray(data.referrals) || !Array.isArray(data.referralRedemptions))return null;
   return data as DemoState;
 }

@@ -90,7 +90,7 @@ test("legacy browser data upgrades without losing previous demo orders",()=>{
  const legacy={...seed,version:1};
  delete (legacy as Partial<typeof seed>).merchantStock;
  const upgraded=upgradeDemoLedger(legacy,seed);
- assert.equal(upgraded?.version,2);
+ assert.equal(upgraded?.version,3);
  assert.equal(upgraded?.orders.length,seed.orders.length);
  assert.ok(upgraded?.merchantStock.length);
 });

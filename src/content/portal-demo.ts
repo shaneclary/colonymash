@@ -15,7 +15,15 @@ export type Product = { id: string; name: string; kind: "beer" | "seltzer"; colo
 export type FinishedStock = { productId: string; can: number; six_pack: number; keg: number };
 export type ProductionPlan = { recipeId: string; batches: number; targetDate: string };
 export type TradeLine = { productId: string; format: PackFormat; quantity: number };
-export type TradeOrder = { id: string; merchantId: string; merchantName: string; createdAt: string; neededBy: string; lines: TradeLine[]; status: TradeOrderStatus; notes: string; seriesId?: string };
+export type OrderEvent = { status: TradeOrderStatus; at: string };
+export type TradeOrder = {
+  id: string; merchantId: string; merchantName: string; createdAt: string; neededBy: string;
+  lines: TradeLine[]; status: TradeOrderStatus; notes: string; seriesId?: string;
+  /** Dated status changes, oldest first. Older demo orders have none. */
+  history?: OrderEvent[];
+  /** Referral bonus product: no charge, still needs staff approval. */
+  bonus?: boolean;
+};
 export type MerchantStock = {
   merchantId: string; productId: string; format: PackFormat; onHand: number;
   minStock: number; targetStock: number; weeklyUse: number; leadDays: number;
@@ -29,10 +37,17 @@ export type MerchantSeries = {
   cadenceDays: 7 | 14 | 28; nextDate: string; active: boolean; notes: string;
 };
 export type MerchantReceipt = { merchantId: string; orderId: string; receivedAt: string };
+export type Referral = {
+  id: string; referrerId: string; referredId: string | null; referredName: string;
+  status: "invited" | "active"; invitedAt: string;
+};
+/** Credit spent on bonus product, in millilitres. Returned if the bonus order is cancelled. */
+export type ReferralRedemption = { id: string; merchantId: string; orderId: string; ml: number; at: string };
 export type DemoState = {
-  version: 2; ingredients: Ingredient[]; finished: FinishedStock[]; production: ProductionPlan[];
+  version: 3; ingredients: Ingredient[]; finished: FinishedStock[]; production: ProductionPlan[];
   orders: TradeOrder[]; merchantStock: MerchantStock[]; merchantMovements: MerchantMovement[];
   merchantSeries: MerchantSeries[]; merchantReceipts: MerchantReceipt[];
+  referrals: Referral[]; referralRedemptions: ReferralRedemption[];
 };
 
 export const demoAccounts = [
@@ -40,6 +55,37 @@ export const demoAccounts = [
   { email: "buyer.demo@coastalpartner.test", password: "TradeDemo2026", role: "merchant" as const, display: "Merchant buying view", company: "Coastal Partner — Demo" },
 ] as const;
 export const merchantDemoId = "coastal-partner-demo";
+export const demoMerchants = [
+  { id: merchantDemoId, name: "Coastal Partner — Demo" },
+  { id: "venue-demo", name: "Sample Events Venue — Demo" },
+] as const;
+
+/**
+ * PROPOSED wholesale referral bonus. Not offered. The owners have not approved it and it has not
+ * been checked against California ABC rules on free goods (see the "referral" question).
+ * The demo has no prices, so credit is counted on filled volume. Real terms would use invoice value.
+ */
+export const referralProgram = {
+  ratePercent: 3,
+  summary: "Refer a wholesale account. Earn 3% of what it takes delivery of, paid in product.",
+  basis: "Counted on filled volume, because this demo has no prices.",
+  status: "Proposed. Not offered until the owners approve it and it clears an ABC check.",
+  bonusNote: "Referral bonus product. No charge.",
+} as const;
+
+/** Order tracking stages, in order. `waiting` says who moves the order next. */
+export const trackingSteps = [
+  { id: "requested", label: "Requested", waiting: "The brewery reviews the request." },
+  { id: "accepted", label: "Accepted", waiting: "The brewery sets a fill date." },
+  { id: "scheduled", label: "Scheduled", waiting: "The brewery fills the order." },
+  { id: "fulfilled", label: "Filled", waiting: "The buyer confirms receipt." },
+  { id: "received", label: "Received", waiting: "" },
+] as const;
+export const trackingCopy = {
+  cancelled: "Cancelled. Nothing more happens on this order.",
+  complete: "Complete.",
+  late: "Past the requested date.",
+} as const;
 
 /** Full 35-release history for browsing. This is not a live trade catalog or stock feed. */
 export const demoProducts: Product[] = drinks.map(drink => ({
@@ -99,7 +145,7 @@ export function plusDays(dayOffset: number, reference = new Date()): string {
 }
 export function demoSeed(reference = new Date()): DemoState {
   return {
-    version: 2,
+    version: 3,
     ingredients: [
       { id: "base", name: "Fermentable base (illustrative)", unit: "kg", onHand: 31, incoming: 0, safety: 12, reorderPoint: 24, leadDays: 5, supplier: "Demo Ingredient Supplier" },
       { id: "fruit", name: "Fruit blend (illustrative)", unit: "L", onHand: 9, incoming: 0, safety: 5, reorderPoint: 14, leadDays: 7, supplier: "Demo Fruit Supplier" },
@@ -137,19 +183,34 @@ export function demoSeed(reference = new Date()): DemoState {
     ],
     merchantSeries: [],
     merchantReceipts: [],
+    referrals: [
+      { id: "DEMO-REF-1", referrerId: merchantDemoId, referredId: "venue-demo",
+        referredName: "Sample Events Venue — Demo", status: "active", invitedAt: plusDays(-30, reference) },
+    ],
+    referralRedemptions: [],
     orders: [
+      { id: "DEMO-0998", merchantId: "venue-demo", merchantName: "Sample Events Venue — Demo",
+        createdAt: plusDays(-20, reference), neededBy: plusDays(-9, reference), status: "fulfilled",
+        lines: [{ productId: "purple-reign", format: "keg", quantity: 4 }],
+        notes: "Sample filled order. Counts toward the referral demo.",
+        history: [{ status: "requested", at: plusDays(-20, reference) }, { status: "accepted", at: plusDays(-18, reference) },
+          { status: "scheduled", at: plusDays(-15, reference) }, { status: "fulfilled", at: plusDays(-9, reference) }] },
       { id: "DEMO-1001", merchantId: merchantDemoId, merchantName: "Coastal Partner — Demo",
         createdAt: plusDays(-4, reference), neededBy: plusDays(6, reference), status: "accepted",
         lines: [{ productId: "cherry-limeade", format: "keg", quantity: 2 }, { productId: "rickys-rice-lager", format: "six_pack", quantity: 4 }],
-        notes: "Sample trade delivery; not a real booking." },
+        notes: "Sample trade delivery; not a real booking.",
+        history: [{ status: "requested", at: plusDays(-4, reference) }, { status: "accepted", at: plusDays(-3, reference) }] },
       { id: "DEMO-1002", merchantId: "venue-demo", merchantName: "Sample Events Venue — Demo",
         createdAt: plusDays(-2, reference), neededBy: plusDays(13, reference), status: "scheduled",
         lines: [{ productId: "purple-reign", format: "keg", quantity: 3 }],
-        notes: "Illustrative scheduled order." },
+        notes: "Illustrative scheduled order.",
+        history: [{ status: "requested", at: plusDays(-2, reference) }, { status: "accepted", at: plusDays(-2, reference) },
+          { status: "scheduled", at: plusDays(-1, reference) }] },
       { id: "DEMO-1003", merchantId: merchantDemoId, merchantName: "Coastal Partner — Demo",
         createdAt: plusDays(-1, reference), neededBy: plusDays(17, reference), status: "requested",
         lines: [{ productId: "cherry-limeade", format: "six_pack", quantity: 5 }],
-        notes: "Pending review; excluded from committed-demand forecast." },
+        notes: "Pending review; excluded from committed-demand forecast.",
+        history: [{ status: "requested", at: plusDays(-1, reference) }] },
     ],
   };
 }
