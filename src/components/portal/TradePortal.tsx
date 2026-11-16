@@ -200,7 +200,7 @@ export function TradePortal(){
             </select>
           </label>
           <label>Package
-            <select value={trackFormat} onChange={e=>setTrackFormat(e.target.value)}>
+            <select value={trackFormat} onChange={e=>setTrackFormat(e.target.value as PackFormat)}>
               {merchantFormats.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}
             </select>
           </label>
