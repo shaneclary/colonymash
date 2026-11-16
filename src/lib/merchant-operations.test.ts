@@ -85,12 +85,23 @@ test("future scheduling rejects empty carts, past starts and excessive occurrenc
  assert.equal(createMerchantSeries(state,merchantDemoId,"Demo",line,"2026-11-22",7,100,today,"s","").createdOrders,0);
  assert.equal(dateAfter("2026-12-31",7),"2027-01-07");
 });
-test("legacy browser data upgrades without losing previous demo orders",()=>{
+test("browser data saved by older versions upgrades and keeps its orders", () => {
  const seed=demoSeed(new Date("2026-11-15T12:00:00"));
- const legacy={...seed,version:1};
- delete (legacy as Partial<typeof seed>).merchantStock;
- const upgraded=upgradeDemoLedger(legacy,seed);
- assert.equal(upgraded?.version,3);
- assert.equal(upgraded?.orders.length,seed.orders.length);
- assert.ok(upgraded?.merchantStock.length);
+ const v1: Record<string,unknown>={version:1,ingredients:seed.ingredients,finished:seed.finished,production:[],orders:seed.orders.filter(x=>x.id!=="DEMO-0998")};
+ const fromV1=upgradeDemoLedger(v1,seed);
+ assert.equal(fromV1?.version,4);
+ assert.equal(fromV1?.orders.length,seed.orders.length);
+ assert.ok(fromV1?.merchantStock.length && fromV1.recipes.length && fromV1.accounts.length);
+ const custom={...seed.merchantStock[0],onHand:77};
+ const v3: Record<string,unknown>={version:3,ingredients:seed.ingredients,finished:seed.finished,production:[],
+  orders:[...seed.orders,{...seed.orders[1],id:"BONUS-1",bonus:true}],merchantStock:[custom],merchantMovements:[],merchantSeries:[],merchantReceipts:[],
+  referrals:[{id:"r"}],referralRedemptions:[]};
+ const fromV3=upgradeDemoLedger(v3,seed);
+ assert.equal(fromV3?.version,4);
+ assert.equal(fromV3?.merchantStock[0].onHand,77);
+ assert.equal(fromV3?.orders.some(x=>x.id==="BONUS-1"),false);
+ assert.equal("referrals" in (fromV3??{}),false);
+ assert.equal(upgradeDemoLedger(seed,seed),seed);
+ assert.equal(upgradeDemoLedger({...seed,accounts:undefined},seed),null);
+ assert.equal(upgradeDemoLedger({version:9,ingredients:[],finished:[],orders:[]},seed),null);
 });

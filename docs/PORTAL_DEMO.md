@@ -88,16 +88,31 @@ Review the prototype; do not use these sample logins as real business accounts.
 - All future dates remain requests for review; no automatic processing, checkout, supplier ordering, merchant data security or stock synchronization has been added.
 
 
-## V2.2 order tracking and proposed referral bonus
-- **Track orders** (merchant) replaces Order history. Every order shows five stages: Requested, Accepted, Scheduled, Filled, Received, with the date each was reached and who moves it next. Filter by Open, Closed or All, or find an order by its number. An open order past its requested date is marked.
-- Staff status changes in Orders are now dated, and the same tracker shows on each staff order.
-- **Referrals** (merchant and staff). A wholesale account refers another. The referring account earns 3% of what the referred account has had filled, paid in product. The merchant takes credit as a no-charge bonus request, which staff approve like any order. Cancelling that request returns the credit.
-- Staff see a referral ledger: each referring account, what its referrals have had filled, credit earned, used and owed.
+## V3 staff rebuild (replaces the staff sections above where they differ)
 
-**Referral model:** credit = floor(3% x millilitres filled for the referred account), counting only Fulfilled orders placed on or after the referral date, and never bonus orders. The demo has no prices, so it counts volume with the illustrative package sizes. Real terms would run on invoice value.
+The referral bonus is removed. A bonus paid in product to a licensed retailer runs into California's limits on free goods (Business and Professions Code section 25600), so the code, the data and the owner question are gone.
 
-**Referral status: proposed, not offered.** The owners have not approved it. California Business and Professions Code section 25600 limits premiums, gifts and free goods given in connection with alcohol sales, so a bonus paid in product to a licensed retailer needs an ABC or alcohol-counsel check before it is offered. Tracked as the `referral` question at /confirm.
+**Staff side**
+- **Undo.** Every staff change shows in a bar at the top with an Undo button. It holds the last 25 changes. Typing in one field counts as one change. Orders also have a "Back to ..." button that steps the status back one stage and still works after a reload.
+- **Calendar.** A month view of scheduled and wanted orders, brew days, special events, requests, account follow-ups and ingredient buys. Each item has a Google Calendar link and an .ics file for Apple Calendar and Outlook. One button downloads everything upcoming as a single .ics file. The file is a copy, not a live feed.
+- **Orders.** Scheduling asks for a day, delivery or pickup, and a time window. A scheduled order's slot can be changed. Buyers see the slot under Track orders and can add it to their own calendar.
+- **Requests.** One inbox for private event requests and for sample or staff-demo requests from wholesale accounts. Approve, decline, mark done or reopen, with a reply the requester sees.
+- **Hours & events.** Change the taproom hours for one week without touching the usual hours. Add, edit and remove special events.
+- **Production.** Recipe profiles are saved under a name with a batch size and ingredient amounts. Adding a batch to the schedule copies a recipe. The batch's size and amounts can then change without touching the recipe, and a changed batch can be saved as a new recipe. Packaging a batch asks for cans, packs and kegs and adds them to stock.
+- **Ingredients.** New ingredients can be added. Need is the sum of each scheduled batch's own amounts, plus any extra batches committed orders call for.
+- **Packaged stock.** Add cans, packs and kegs for any drink. "Packs" replaces "6-packs" because the pack size is not confirmed.
+- **Accounts.** Each wholesale account has a page: contact, address, license, receiving hours, delivery notes, terms, tags, a dated note and contact log, a follow-up date, order history, buyer-reported stock, kegs out and returned, and sample or demo requests. The list puts accounts with a follow-up due or that have gone quiet first. New accounts start as prospects.
 
-**Limits:** an invited business earns nothing until staff open an account for it, and the demo has no screen for that step. Saved browser data from the earlier demo upgrades in place (ledger version 3).
+**Merchant side**
+- **Track orders.** Five dated stages per order, open and closed filters, lookup by order number.
+- **Samples & demos.** Ask the brewery for samples or a staff demo and read the reply.
+- **Promo kit.** Menu lines (name, style, ABV), the brewery story and cleared photos, each with a copy or download button. Wording comes from the site's own content files, so it stays in step with the public site.
 
-**Suggested test:** Merchant → Referrals → request 2 6-packs of bonus product → Track orders. Staff → Orders → mark DEMO-1002 fulfilled → Referrals: credit owed rises.
+**Limits that still apply**
+- Everything is saved in one browser. Staff changes to hours and events do not reach the public site. A second device sees nothing. All of that needs the live backend.
+- The calendar file does not update itself. A subscribed feed needs a server.
+- Volume math counts a pack as six 16 oz cans and a keg as a half barrel. See the `pack-size` question.
+- Sample requests are recorded but no legal limit is enforced. See the `samples` question.
+- Saved browser data from earlier versions upgrades in place (ledger version 4). Old referral orders are dropped.
+
+**Suggested test:** Staff → Orders → schedule DEMO-1001 → Undo → schedule again → Calendar → download the file. Production → add a batch → change its size → save it as a recipe → package it → Packaged stock. Accounts → open one → add a note. Merchant → Track orders, Samples & demos, Promo kit.

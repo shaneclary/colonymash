@@ -6,7 +6,7 @@ import { isTradeLine, sanitizeTradeLines } from "./portal-forecast.ts";
 
 export const merchantFormats: { id: PackFormat; label: string }[] = [
   { id: "can", label: "Single cans" },
-  { id: "six_pack", label: "6-packs" },
+  { id: "six_pack", label: "Packs" },
   { id: "keg", label: "Kegs" },
 ];
 const validProduct = new Set(demoProducts.map(x => x.id));
@@ -179,27 +179,25 @@ export function extendMerchantSeries(state:DemoState,merchantId:string,seriesId:
   },createdOrders:count};
 }
 
-/** Sample stock + order history only; no actual customer account security. */
+/**
+ * Bring browser data saved by an earlier version of the demo up to the current shape.
+ * Orders, buyer stock and ingredient counts are kept. Anything the old shape lacks comes from the seed.
+ */
 export function upgradeDemoLedger(raw:unknown, seed:DemoState):DemoState|null {
   if (!raw || typeof raw!=="object")return null;
   const data=raw as Record<string,unknown>;
-  const validBase=Array.isArray(data.ingredients)&&Array.isArray(data.finished)&&
-    Array.isArray(data.production)&&Array.isArray(data.orders);
-  if(!validBase)return null;
-  if(data.version===1)return {
-    ...seed,ingredients:data.ingredients as DemoState["ingredients"],
-    finished:data.finished as DemoState["finished"],production:data.production as DemoState["production"],
-    orders:data.orders as DemoState["orders"],
+  if(!Array.isArray(data.ingredients)||!Array.isArray(data.finished)||!Array.isArray(data.orders))return null;
+  const lists=["recipes","batches","merchantStock","merchantMovements","merchantSeries","merchantReceipts","events","requests","accounts","accountNotes"];
+  if(data.version===4)
+    return lists.every(key=>Array.isArray(data[key])) && data.weekHours && typeof data.weekHours==="object" ? data as DemoState : null;
+  if(data.version!==1 && data.version!==2 && data.version!==3)return null;
+  const kept=(key:"merchantStock"|"merchantMovements"|"merchantSeries"|"merchantReceipts")=>
+    Array.isArray(data[key])?{[key]:data[key]}:{};
+  // Version 3 carried referral bonus orders. That program was removed, so those orders go with it.
+  const orders=(data.orders as (DemoState["orders"][number]&{bonus?:boolean})[]).filter(x=>!x.bonus);
+  return {
+    ...seed,ingredients:data.ingredients as DemoState["ingredients"],finished:data.finished as DemoState["finished"],
+    orders:[...orders,...seed.orders.filter(x=>x.status==="fulfilled" && !orders.some(o=>o.id===x.id))],
+    ...kept("merchantStock"),...kept("merchantMovements"),...kept("merchantSeries"),...kept("merchantReceipts"),
   };
-  if((data.version!==2 && data.version!==3) || !Array.isArray(data.merchantStock) || !Array.isArray(data.merchantMovements) ||
-    !Array.isArray(data.merchantSeries) || !Array.isArray(data.merchantReceipts))return null;
-  if(data.version===2){
-    // Version 3 adds referrals. Bring in the seed's filled sample orders so the referral demo has credit to show.
-    const saved=data.orders as DemoState["orders"];
-    const history=seed.orders.filter(x=>x.status==="fulfilled" && !saved.some(o=>o.id===x.id));
-    return {...(data as unknown as DemoState),version:3,orders:[...saved,...history],
-      referrals:seed.referrals,referralRedemptions:[]};
-  }
-  if(!Array.isArray(data.referrals) || !Array.isArray(data.referralRedemptions))return null;
-  return data as DemoState;
 }

@@ -1,6 +1,6 @@
 import {
-  demoPackVolumes, demoProducts, demoRecipes, demoTradeStatus,
-  type DemoState, type Ingredient, type PackFormat, type Recipe,
+  demoPackVolumes, demoProducts, demoTradeStatus,
+  type Batch, type BillLine, type DemoState, type Ingredient, type PackFormat, type RecipeProfile,
   type TradeLine, type TradeOrder, type TradeOrderStatus,
 } from "../content/portal-demo.ts";
 
@@ -56,38 +56,39 @@ export function finishedUnitAvailability(state: DemoState, productId: string, fo
 }
 
 export type ProductionEstimate = {
-  recipe: Recipe;
+  productId: string;
   productName: string;
-  plannedBatches: number;
+  /** The saved recipe used to size any extra batches. Missing when only one-off batches exist. */
+  recipe?: RecipeProfile;
+  /** Batches on the schedule that are not packaged yet. */
+  batches: Batch[];
+  plannedLiters: number;
   extraBatches: number;
-  totalBatches: number;
   demandLiters: number;
   finishedLiters: number;
-  plannedLiters: number;
   targetDate: string;
 };
 
+/** Per product: what is scheduled, what committed orders need, and any extra batches that implies. */
 export function productionEstimates(state: DemoState): ProductionEstimate[] {
   const committed = committedOrderLines(state);
-  return demoRecipes.map((recipe) => {
-    const product = demoProducts.find(p => p.recipeId === recipe.id);
-    const productId = product?.id ?? "";
-    const plan = state.production.find(p => p.recipeId === recipe.id);
-    const productLines = committed.filter(x => x.productId === productId);
+  const planned = state.batches.filter(batch => batch.status === "planned");
+  const productIdsInPlay = [...new Set([...state.recipes.map(x => x.productId), ...planned.map(x => x.productId)])];
+  return productIdsInPlay.map((productId) => {
+    const recipe = state.recipes.find(x => x.productId === productId);
+    const batches = planned.filter(x => x.productId === productId).sort((a, b) => a.date.localeCompare(b.date));
     const finished = state.finished.find(x => x.productId === productId);
-    const demandLiters = volumeLiters(productLines);
+    const demandLiters = volumeLiters(committed.filter(x => x.productId === productId));
     // Illustrative volume-equivalent planning only. Real cans/kegs need packaging-specific capacity.
     const finishedLiters = finished
       ? finished.can * demoPackVolumes.can + finished.six_pack * demoPackVolumes.six_pack + finished.keg * demoPackVolumes.keg
       : 0;
-    const plannedBatches = Math.max(0, plan?.batches ?? 0);
-    const plannedLiters = plannedBatches * recipe.yieldLiters;
-    const extraBatches = Math.ceil(Math.max(0, demandLiters - finishedLiters - plannedLiters) / recipe.yieldLiters);
+    const plannedLiters = batches.reduce((sum, batch) => sum + batch.batchLiters, 0);
+    const extraBatches = recipe && recipe.batchLiters > 0
+      ? Math.ceil(Math.max(0, demandLiters - finishedLiters - plannedLiters) / recipe.batchLiters) : 0;
     return {
-      recipe, productName: product?.name ?? recipe.name, plannedBatches, extraBatches,
-      totalBatches: plannedBatches + extraBatches,
-      demandLiters, finishedLiters, plannedLiters,
-      targetDate: plan?.targetDate ?? "",
+      productId, productName: demoProducts.find(p => p.id === productId)?.name ?? productId, recipe, batches,
+      plannedLiters, extraBatches, demandLiters, finishedLiters, targetDate: batches[0]?.date ?? "",
     };
   });
 }
@@ -108,18 +109,19 @@ export type IngredientNeed = {
 };
 export function ingredientForecast(state: DemoState, today: string): IngredientNeed[] {
   const production = productionEstimates(state);
+  const amountOf = (bill: BillLine[], id: string) => bill.find(x => x.ingredientId === id)?.amount ?? 0;
   return state.ingredients.map((item) => {
-    const required = production.reduce((sum, estimate) => {
-      const line = estimate.recipe.bill.find(x => x.ingredientId === item.id);
-      return sum + (line?.perBatch ?? 0) * estimate.totalBatches;
-    }, 0);
+    const required = production.reduce((sum, estimate) =>
+      sum + estimate.batches.reduce((batchSum, batch) => batchSum + amountOf(batch.bill, item.id), 0) +
+        estimate.extraBatches * amountOf(estimate.recipe?.bill ?? [], item.id), 0);
     const projected = item.onHand + item.incoming - required;
     const suggestedOrder = Math.max(0,
       item.safety - projected,
       item.reorderPoint - (item.onHand + item.incoming));
-    const pertinentDates = production.filter(estimate =>
-      estimate.totalBatches > 0 && estimate.recipe.bill.some(line => line.ingredientId === item.id))
-      .map(estimate => estimate.targetDate).filter(Boolean).sort();
+    const pertinentDates = production.flatMap(estimate => [
+      ...estimate.batches.filter(batch => amountOf(batch.bill, item.id) > 0).map(batch => batch.date),
+      ...(estimate.extraBatches > 0 && amountOf(estimate.recipe?.bill ?? [], item.id) > 0 ? [estimate.targetDate] : []),
+    ]).filter(Boolean).sort();
     const reorderBy = pertinentDates.length ? addDays(pertinentDates[0], -item.leadDays) : "";
     const status: IngredientNeed["status"] = suggestedOrder > 0 && (!reorderBy || reorderBy <= today)
       ? "order-now" : suggestedOrder > 0 ? "watch" : "covered";
@@ -173,12 +175,4 @@ export function updateIngredient(
   if (!Number.isFinite(newValue) || newValue < 0 || newValue > 100000 ||
     (key === "leadDays" && !Number.isSafeInteger(newValue))) return state;
   return { ...state, ingredients: state.ingredients.map(item => item.id === id ? { ...item, [key]: newValue } : item) };
-}
-
-export function changePlannedBatches(state: DemoState, recipeId: string, value: number): DemoState {
-  if (!demoRecipes.some(x => x.id === recipeId) || !Number.isSafeInteger(value) || value < 0 || value > 100) return state;
-  return {
-    ...state,
-    production: state.production.map(plan => plan.recipeId === recipeId ? { ...plan, batches: value } : plan),
-  };
 }

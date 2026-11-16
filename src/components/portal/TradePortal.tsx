@@ -16,20 +16,24 @@ import {
   recordMerchantUsage, setSeriesActive,
 } from "@/lib/merchant-operations";
 import { findOrder, trackOrder } from "@/lib/order-tracking";
-import { referralSummary } from "@/lib/referrals";
 import { OrderTracker } from "./OrderTracker";
-import { ReferralPanel, liters } from "./ReferralPanel";
+import { PromoKit } from "./PromoKit";
+import { SampleRequests } from "./SampleRequests";
+import { CalendarLinks } from "./admin/AdminCalendar";
+import { slotText } from "./admin/AdminOrders";
+import { lineText } from "./format";
 import { PortalFrame } from "./PortalFrame";
 import { useDemoLedger } from "./useDemoPortal";
 
-type View = "inventory" | "catalog" | "schedule" | "requests" | "referrals" | "activity" | "account";
+type View = "inventory" | "catalog" | "schedule" | "requests" | "samples" | "promo" | "activity" | "account";
 type OrderFilter = "open" | "closed" | "all";
 const sections: {id:View;label:string}[]=[
   {id:"inventory",label:"My inventory"},
   {id:"catalog",label:"Reorder & catalog"},
   {id:"schedule",label:"Future orders"},
   {id:"requests",label:"Track orders"},
-  {id:"referrals",label:"Referrals"},
+  {id:"samples",label:"Samples & demos"},
+  {id:"promo",label:"Promo kit"},
   {id:"activity",label:"Stock activity"},
   {id:"account",label:"Account"},
 ];
@@ -97,7 +101,6 @@ export function TradePortal(){
   const shownOrders=orderQuery.trim()?(foundOrder?[foundOrder]:[]):
     [...orders].filter(o=>orderFilter==="all"||(orderFilter==="open")===isOpen(o))
       .sort((a,b)=>orderFilter==="open"?a.neededBy.localeCompare(b.neededBy):b.neededBy.localeCompare(a.neededBy));
-  const credit=referralSummary(state,merchantDemoId);
   const low=forecasts.filter(x=>x.status==="low");
   const restock=forecasts.filter(x=>x.suggested>0&&x.stock.targetStock>0&&
     demoTradeStatus(x.stock.productId,x.stock.format)!=="unavailable");
@@ -440,18 +443,19 @@ export function TradePortal(){
         const received=state.merchantReceipts.find(r=>r.orderId===o.id&&r.merchantId===merchantDemoId);
         return <article key={o.id} className="cm-portal__order">
           <div className="cm-portal__order-top"><div><p className="cm-portal__overline">{o.id} · wanted {dateLabel(o.neededBy)}</p>
-            <h3>{o.bonus?"Referral bonus product":o.seriesId?"Scheduled replenishment":"Wholesale request"}</h3></div>
+            <h3>{o.seriesId?"Scheduled replenishment":"Wholesale request"}</h3></div>
             <span className={"cm-portal__status cm-portal__status--"+o.status}>{o.status}</span></div>
           <OrderTracker tracking={trackOrder(state,o,today)}/>
+          {o.slot&&o.status==="scheduled"&&<p className="cm-portal__slot"><strong>Scheduled:</strong> {slotText(o.slot)}
+            <CalendarLinks entry={{id:"order-"+o.id,kind:"order",date:o.slot.date,tentative:false,
+              title:"Colony Mash "+(o.slot.method==="pickup"?"pickup":"delivery"),detail:[o.id,o.slot.window,lineText(o.lines)].filter(Boolean).join(". ")}}/></p>}
           <ul className="cm-portal__bill">{o.lines.map(l=><li key={l.productId+l.format}>
             <span>{productName(l.productId)} · {packName(l.format)}</span><strong>× {l.quantity}</strong>
           </li>)}</ul>
           {o.notes&&<p className="cm-portal__muted">{o.notes}</p>}
           <div className="cm-portal__order-actions">
-            {!o.bonus&&<>
-              <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines)}>Reorder / copy ↗</button>
-              <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines,"schedule")}>Use in new schedule ↗</button>
-            </>}
+            <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines)}>Reorder / copy ↗</button>
+            <button type="button" className="cm-portal__button" onClick={()=>preload(o.lines,"schedule")}>Use in new schedule ↗</button>
             {o.status==="requested"&&<>
               <label className="cm-portal__order-date">Change requested date
                 <input type="date" min={today} value={orderDates[o.id]??o.neededBy}
@@ -465,7 +469,7 @@ export function TradePortal(){
               <button type="button" className="cm-portal__button" onClick={()=>{
                 if(window.confirm("Cancel this pending sample request?")) {
                   setState(s=>cancelRequestedMerchantOrder(s,merchantDemoId,o.id));
-                  setFeedback(o.bonus?"Cancelled. The referral credit is back in your balance.":"Cancelled pending request. Existing schedules remain separately editable.");
+                  setFeedback("Cancelled pending request. Existing schedules remain separately editable.");
                 }
               }}>Cancel request</button>
             </>}
@@ -476,9 +480,10 @@ export function TradePortal(){
       })}</div>
     </section>}
 
-    {view==="referrals"&&<ReferralPanel state={state} setState={setState} merchantId={merchantDemoId}
-      company={company} today={today} onFeedback={setFeedback}
-      onTrack={()=>{setOrderFilter("open");setOrderQuery("");setView("requests");}}/>}
+    {view==="samples"&&<SampleRequests state={state} setState={setState} merchantId={merchantDemoId}
+      company={company} contact="buyer.demo@coastalpartner.test" today={today} onFeedback={setFeedback}/>}
+
+    {view==="promo"&&<PromoKit onFeedback={setFeedback}/>}
 
     {view==="activity"&&<section className="cm-portal__panel">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">YOUR VENUE'S STOCK LEDGER</p>
@@ -502,7 +507,6 @@ export function TradePortal(){
           <dt>Inventory ownership</dt><dd>Buyer-entered venue stock, not brewery stock</dd>
           <dt>Wholesale authorization</dt><dd>Not implemented</dd>
           <dt>Recurring purchasing</dt><dd>Dated review requests, not automatic purchases</dd>
-          <dt>Referral credit</dt><dd>{liters(credit.balanceMl)} available (proposed program)</dd>
           <dt>Authentication</dt><dd>Public sample login; not secure</dd>
         </dl></section>
       <section className="cm-portal__panel"><p className="cm-portal__overline">HOW TO USE THIS WORKSPACE</p>
@@ -513,7 +517,7 @@ export function TradePortal(){
           <li>Review the low-stock list and load suggested quantities into your reorder cart.</li>
           <li>Submit a dated wholesale request, or queue 2–6 future requests on a rhythm.</li>
           <li>Follow each order under Track orders, and receive it once it is Filled.</li>
-          <li>Refer another wholesale account and take the bonus in product.</li>
+          <li>Ask for samples or a staff demo, and pull menu wording and photos from the Promo kit.</li>
         </ol>
         <p className="cm-portal__muted">Real production would require per-merchant secure accounts and automated data sync if the buyer wants POS sales to update stock.</p>
       </section>

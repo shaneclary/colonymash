@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { demoSeed, demoProducts, demoRecipes, demoPackVolumes } from "../content/portal-demo.ts";
+import { demoSeed, demoProducts, demoPackVolumes } from "../content/portal-demo.ts";
+import { scheduleBatch } from "./production.ts";
 import {
-  changePlannedBatches, committedOrderLines, createTradeRequest,
+  committedOrderLines, createTradeRequest,
   finishedUnitAvailability, ingredientForecast, nextOrderStatus, productionEstimates,
   quantityForTrade, sanitizeTradeLines, transitionOrder, updateIngredient, updateTradeCart, volumeLiters,
 } from "./portal-forecast.ts";
@@ -11,10 +12,10 @@ const date = new Date("2026-11-15T12:00:00");
 const today = "2026-11-15";
 test("demo fixtures are intentionally non-live and contain coherent recipes", () => {
   const state = demoSeed(date);
-  assert.equal(state.version, 3);
+  assert.equal(state.version, 4);
   assert.equal(demoProducts.length, 35);
-  for (const recipe of demoRecipes) {
-    assert.ok(recipe.yieldLiters > 0);
+  for (const recipe of [...state.recipes, ...state.batches]) {
+    assert.ok(recipe.batchLiters > 0);
     for (const line of recipe.bill) assert.ok(state.ingredients.some(i => i.id === line.ingredientId));
   }
   assert.equal(state.orders.find(x => x.id === "DEMO-1003")?.status, "requested");
@@ -61,7 +62,7 @@ test("forecast is sensitive to production plan and inventory receipts", () => {
   const state = demoSeed(date);
   const before = ingredientForecast(state, today);
   assert.ok(before.some(x => x.suggestedOrder > 0));
-  const afterMoreBatches = changePlannedBatches(state, "demo-cherry", 4);
+  const afterMoreBatches = scheduleBatch(scheduleBatch(state, "demo-cherry", "2026-11-21", "B-X1").state, "demo-cherry", "2026-11-21", "B-X2").state;
   const bigger = ingredientForecast(afterMoreBatches, today);
   const baseBefore = before.find(x => x.item.id === "base");
   const baseAfter = bigger.find(x => x.item.id === "base");
@@ -91,7 +92,6 @@ test("merchant quote is review-only and cannot be created with invalid lines or 
 test("inventory edits require bounded nonnegative numbers", () => {
   const state = demoSeed(date);
   assert.equal(updateIngredient(state, "fruit", "onHand", -2), state);
-  assert.equal(changePlannedBatches(state, "demo-cherry", 2.5), state);
   assert.equal(updateIngredient(state, "fruit", "onHand", 9).ingredients.find(i => i.id === "fruit")?.onHand, 9);
 });
 

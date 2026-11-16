@@ -153,10 +153,16 @@ export const questions = [
     file: "src/components/portal/TradePortal.tsx; docs/PORTAL_DEMO.md",
   },
   {
-    id: "referral",
-    ask: "Do you want a wholesale referral bonus: 3% of what a referred account buys, paid to the referring account in product? If yes: counted on invoice value or volume, for how long, and has ABC or your alcohol counsel cleared it?",
-    assumed: "Shane proposed it. The demo counts 3% of filled volume because it has no prices. California Business and Professions Code section 25600 limits premiums, gifts and free goods given with alcohol sales, so the program is shown as proposed and is not offered.",
-    file: "src/content/portal-demo.ts; src/lib/referrals.ts",
+    id: "pack-size",
+    ask: "Are your packs four cans or six, and what size are the cans and kegs you sell wholesale?",
+    assumed: "The portal just says \"packs\". Volume math counts a pack as six 16 oz cans and a keg as a half barrel. Nothing public confirms either.",
+    file: "src/content/portal-demo.ts (demoPackVolumes, packLabels)",
+  },
+  {
+    id: "samples",
+    ask: "How do you want to handle sample and staff-demo requests from wholesale accounts: who approves them, and what limits do you follow?",
+    assumed: "The portal lets an account ask and staff approve or decline, and keeps the list as a record. California's ABC Rule 52 limits samples to licensees and requires a record of them. The exact limits have not been checked for your license.",
+    file: "src/lib/staff-requests.ts; src/components/portal/admin/RequestsPanel.tsx",
   },
 ] as const satisfies readonly Question[];
 

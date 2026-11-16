@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { demoAccounts, demoSeed, type DemoState, type PortalRole } from "@/content/portal-demo";
 import { upgradeDemoLedger } from "@/lib/merchant-operations";
@@ -40,10 +40,16 @@ export function getSavedDemoRole(): PortalRole | null {
   } catch { return null; }
 }
 
+export type UndoEntry = { label: string; state: DemoState };
+
 /** Persistent only in this browser on this site. Multiple tabs see the same demo ledger. */
 export function useDemoLedger() {
   const [state, setState] = useState<DemoState>(() => demoSeed());
   const [loaded, setLoaded] = useState(false);
+  const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
+  const latest = useRef(state);
+  const stack = useRef<UndoEntry[]>([]);
+  useEffect(() => { latest.current = state; }, [state]);
 
   useEffect(() => {
     try {
@@ -70,16 +76,31 @@ export function useDemoLedger() {
     catch { /* private browsing: transient local state */ }
   }, [state, loaded]);
 
-  const reset = useCallback(() => {
-    setState(demoSeed());
+  /**
+   * Make a change that can be undone. Repeated changes with the same label (typing in one field)
+   * fold into one undo step, so Undo takes the field back to where it started.
+   */
+  const commit = useCallback((label: string, change: (current: DemoState) => DemoState): boolean => {
+    const before = latest.current;
+    const next = change(before);
+    if (next === before) return false;
+    if (stack.current[0]?.label !== label) stack.current = [{ label, state: before }, ...stack.current].slice(0, 25);
+    latest.current = next;
+    setUndoStack(stack.current);
+    setState(next);
+    return true;
   }, []);
 
-  const updateFinished = useCallback((productId: string, format: "can" | "six_pack" | "keg", quantity: number) => {
-    if (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 100000) return;
-    setState(current => ({
-      ...current, finished: current.finished.map(x => x.productId === productId ? { ...x, [format]: quantity } : x),
-    }));
+  /** Take back the most recent change. Returns its label. */
+  const undo = useCallback((): string | null => {
+    const [top, ...rest] = stack.current;
+    if (!top) return null;
+    stack.current = rest;
+    latest.current = top.state;
+    setUndoStack(rest);
+    setState(top.state);
+    return top.label;
   }, []);
 
-  return { state, setState, loaded, reset, updateFinished };
+  return { state, setState, loaded, commit, undo, undoStack };
 }

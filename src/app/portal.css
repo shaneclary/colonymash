@@ -343,14 +343,6 @@
 .cm-portal__track-step small { font:700 11px/1.4 var(--font-cm-mono); color:var(--portal-muted); }
 .cm-portal__track-next { font-size:14px; line-height:1.5; }
 .cm-portal__track--cancelled .cm-portal__track-step--done strong { text-decoration:line-through; }
-.cm-portal__referrals { list-style:none; margin:0; padding:0; display:grid; border-top:2px solid var(--portal-ink); }
-.cm-portal__referrals li { display:flex; justify-content:space-between; align-items:center; gap:14px;
-  padding:13px 0; border-bottom:1px solid var(--portal-hair); }
-.cm-portal__referrals li>div { display:grid; gap:3px; min-width:0; }
-.cm-portal__referrals li>div:last-child { text-align:right; flex:0 0 auto; }
-.cm-portal__referrals strong { font-size:15px; line-height:1.3; }
-.cm-portal__referrals span { font-size:12px; color:var(--portal-muted); }
-.cm-portal__referrals b { font:800 14px var(--font-cm-mono); }
 .cm-portal__table tfoot :is(th,td) { border-top:2px solid var(--portal-ink); border-bottom:0; font-weight:800; }
 @media (max-width:550px) {
   .cm-portal__track-steps { grid-template-columns:minmax(0,1fr); }
@@ -360,3 +352,131 @@
   .cm-portal__track-mark { top:11px; left:-9px; }
   .cm-portal__track-next { padding-top:4px; }
 }
+
+
+/* Staff rebuild: undo bar, calendar, inline forms, week hours, accounts, promo kit. */
+.cm-portal__undo { position:sticky; top:0; z-index:40; display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center;
+  justify-content:space-between; padding:10px 14px; background:var(--portal-paper); border:3px solid var(--portal-ink); font-size:14px; }
+.cm-portal__linkbutton { appearance:none; border:0; padding:0; background:none; color:inherit; font:inherit; text-align:left;
+  text-decoration:underline; text-underline-offset:4px; }
+.cm-portal__metrics>button { display:grid; align-content:space-between; gap:12px; min-height:152px; padding:19px; text-align:left;
+  background:var(--portal-paper); color:var(--portal-ink); border:0; border-right:2px solid var(--portal-ink); border-radius:0; }
+.cm-portal__metrics>button:last-child { border-right:0; }
+.cm-portal__metrics--small>div { min-height:0; }
+.cm-portal__metrics--small strong { font-size:clamp(28px,3.4vw,44px); }
+.cm-portal__inline-form { display:flex; flex-wrap:wrap; gap:10px; align-items:end; border:1px solid var(--portal-hair); padding:12px; }
+.cm-portal__inline-form label, .cm-portal__stack, .cm-portal__triple label, .cm-portal__pair label, .cm-portal__week-day label, .cm-portal__fields label {
+  display:grid; gap:5px; font-size:13px; font-weight:800; min-width:0; flex:1 1 150px; }
+.cm-portal__inline-form :is(input,select), .cm-portal__stack :is(input,select), .cm-portal__triple :is(input,select),
+.cm-portal__pair input, .cm-portal__week-day :is(input,select), .cm-portal__fields input, .cm-portal__bill-row :is(input,select) {
+  width:100%; min-width:0; min-height:44px; padding:8px; background:var(--portal-paper); color:var(--portal-ink);
+  border:2px solid var(--portal-ink); border-radius:0; font:500 15px/1.3 var(--font-cm-text); }
+.cm-portal__inline-form .cm-portal__button { flex:0 0 auto; }
+.cm-portal__triple { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; align-items:start; }
+.cm-portal__triple small, .cm-portal__form small { font-weight:500; font-size:12px; color:var(--portal-muted); }
+.cm-portal__pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.cm-portal__check { display:flex!important; flex-direction:row; align-items:center; gap:10px; font-size:14px; font-weight:800; }
+.cm-portal__check input { width:22px; height:22px; min-height:0; flex:0 0 22px; accent-color:var(--portal-ink); }
+.cm-portal__subform { border:2px solid var(--portal-ink); padding:14px; }
+.cm-portal__slot { display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline; font-size:15px; }
+.cm-portal__cal-links { display:inline-flex; flex-wrap:wrap; gap:4px 14px; font-size:13px; font-weight:800; }
+.cm-portal__back { justify-self:start; }
+
+.cm-portal__cal { display:grid; border:2px solid var(--portal-ink); }
+.cm-portal__cal-row { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); }
+.cm-portal__cal-row--head span { padding:7px 4px; text-align:center; background:var(--portal-ink); color:var(--portal-paper);
+  font:700 11px/1.4 var(--font-cm-mono); }
+.cm-portal__cal-day { display:grid; align-content:start; gap:4px; min-height:92px; padding:7px; text-align:left; background:var(--portal-paper);
+  color:var(--portal-ink); border:0; border-top:1px solid var(--portal-hair); border-right:1px solid var(--portal-hair); border-radius:0; min-width:0; }
+.cm-portal__cal-row>.cm-portal__cal-day:last-child { border-right:0; }
+.cm-portal__cal-day b { font:800 14px/1 var(--font-cm-mono); }
+.cm-portal__cal-day--out { color:var(--portal-muted); background:var(--portal-wash); }
+.cm-portal__cal-day--today b { background:var(--portal-ink); color:var(--portal-paper); padding:3px 5px; justify-self:start; }
+.cm-portal__cal-day[aria-pressed="true"] { outline:3px solid var(--portal-ink); outline-offset:-3px; }
+.cm-portal__cal-marks { display:flex; flex-wrap:wrap; gap:3px; align-items:center; }
+.cm-portal__cal-marks i { width:9px; height:9px; background:var(--portal-ink); border:2px solid var(--portal-ink); }
+.cm-portal__cal-marks i.cm-portal__cal-mark--tentative { background:var(--portal-paper); border-style:dashed; border-width:1px; }
+.cm-portal__cal-marks em { font:700 10px var(--font-cm-mono); font-style:normal; }
+.cm-portal__cal-titles { display:grid; gap:2px; }
+.cm-portal__cal-titles span { font-size:11px; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cm-portal__agenda { list-style:none; margin:0; padding:0; display:grid; }
+.cm-portal__agenda-item { display:grid; gap:5px; justify-items:start; padding:13px 0; border-bottom:1px solid var(--portal-hair); }
+.cm-portal__agenda-item--tentative { border-left:3px dashed var(--portal-ink); padding-left:12px; }
+.cm-portal__agenda-item strong { font-size:16px; line-height:1.3; }
+.cm-portal__agenda-item>span { font-size:13px; line-height:1.5; color:var(--portal-muted); }
+.cm-portal__agenda-item>span b { color:var(--portal-ink); }
+
+.cm-portal__week { display:grid; border:2px solid var(--portal-ink); }
+.cm-portal__week-day { display:grid; grid-template-columns:minmax(150px,1.1fr) repeat(3,minmax(0,.8fr)) minmax(0,1.6fr); gap:10px; align-items:end;
+  padding:12px; border-bottom:1px solid var(--portal-hair); }
+.cm-portal__week-day:last-child { border-bottom:0; }
+.cm-portal__week-name { display:grid; gap:3px; align-self:center; }
+.cm-portal__week-name span { font:700 12px/1.4 var(--font-cm-mono); color:var(--portal-muted); }
+
+.cm-portal__bill-edit { display:grid; gap:7px; }
+.cm-portal__bill-row { display:grid; grid-template-columns:minmax(0,1fr) 96px 30px 44px; gap:8px; align-items:center; font-size:14px; }
+.cm-portal__bill-row label { font-weight:800; overflow-wrap:anywhere; }
+.cm-portal__bill-row span { font:700 12px var(--font-cm-mono); color:var(--portal-muted); }
+.cm-portal__bill-row .cm-portal__button { min-height:44px; padding:6px; }
+.cm-portal__bill-row--add { grid-template-columns:minmax(0,1fr) 96px 30px 64px; border-top:1px solid var(--portal-hair); padding-top:8px; }
+.cm-portal__order h4 { font:900 15px/1.3 var(--font-cm-text); }
+
+.cm-portal__stock-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.cm-portal__stock-card { display:grid; gap:10px; border:2px solid var(--portal-ink); padding:14px; min-width:0; }
+.cm-portal__stock-card h3 { font:900 20px/1.15 var(--font-cm-display); }
+
+.cm-portal__accounts { list-style:none; margin:0; padding:0; display:grid; border:2px solid var(--portal-ink); }
+.cm-portal__accounts li { border-bottom:1px solid var(--portal-hair); }
+.cm-portal__accounts li:last-child { border-bottom:0; }
+.cm-portal__accounts button { display:grid; gap:4px; width:100%; padding:14px; text-align:left; background:var(--portal-paper);
+  color:var(--portal-ink); border:0; border-radius:0; }
+.cm-portal__accounts strong { font:900 20px/1.2 var(--font-cm-display); }
+.cm-portal__accounts button>span { font-size:13px; color:var(--portal-muted); }
+.cm-portal__flags { display:flex; flex-wrap:wrap; gap:6px; }
+.cm-portal__flags :is(b,i) { font:800 11px/1.3 var(--font-cm-mono); font-style:normal; text-transform:uppercase; padding:3px 7px;
+  border:2px solid var(--portal-ink); color:var(--portal-ink); }
+.cm-portal__flags b { background:var(--portal-ink); color:var(--portal-paper); }
+.cm-portal__flags i { border-style:dashed; border-width:1px; }
+.cm-portal__fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.cm-portal__field--wide { grid-column:1 / -1; }
+
+.cm-portal__promo-photos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.cm-portal__promo-photos figure { margin:0; display:grid; gap:8px; align-content:start; border:1px solid var(--portal-ink); padding:8px; min-width:0; }
+.cm-portal__promo-photos img { display:block; width:100%; height:auto; aspect-ratio:4 / 3; object-fit:cover; }
+.cm-portal__promo-bw { filter:grayscale(1) contrast(1.1); }
+.cm-portal__promo-photos figcaption { display:grid; gap:6px; justify-items:start; font-size:14px; }
+.cm-portal__promo-lines { list-style:none; margin:0; padding:0; display:grid; }
+.cm-portal__promo-lines li { display:grid; grid-template-columns:15px minmax(0,1fr) auto; gap:12px; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--portal-hair); }
+.cm-portal__promo-lines li>div { display:grid; gap:2px; min-width:0; }
+.cm-portal__promo-lines strong { font-size:16px; }
+.cm-portal__promo-lines li>div>span { font-size:13px; color:var(--portal-muted); }
+
+@media (max-width:900px) {
+  .cm-portal__week-day { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .cm-portal__week-name, .cm-portal__week-note { grid-column:1 / -1; }
+  .cm-portal__stock-cards { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:1050px) {
+  .cm-portal__metrics>button:nth-child(2) { border-right:0; }
+  .cm-portal__metrics>button:nth-child(-n+2) { border-bottom:2px solid var(--portal-ink); }
+}
+@media (max-width:760px) {
+  .cm-portal__metrics>button { min-height:132px; padding:14px; }
+  .cm-portal__cal-day { min-height:58px; padding:5px 3px; justify-items:center; }
+  .cm-portal__cal-titles { display:none; }
+  .cm-portal__cal-marks { justify-content:center; }
+  .cm-portal__fields { grid-template-columns:minmax(0,1fr); }
+  .cm-portal__undo { top:0; }
+}
+@media (max-width:550px) {
+  .cm-portal__promo-photos { grid-template-columns:minmax(0,1fr); }
+  .cm-portal__bill-row { grid-template-columns:minmax(0,1fr) 82px 26px 44px; }
+  .cm-portal__bill-row--add { grid-template-columns:minmax(0,1fr) 82px 26px 60px; }
+  .cm-portal__inline-form .cm-portal__button { flex:1 1 100%; }
+}
+.cm-portal__panel-head .cm-portal__button { border:2px solid var(--portal-ink); text-decoration:none; padding:10px 14px; min-width:44px; }
+.cm-portal__panel-head .cm-portal__button--dark { color:var(--portal-paper); }
+.cm-portal__pair small { font-weight:500; font-size:12px; color:var(--portal-muted); }
+.cm-portal__details :is(dt,dd) { min-width:0; overflow-wrap:anywhere; }
+.cm-portal__upcoming>div { min-width:0; overflow-wrap:anywhere; }
