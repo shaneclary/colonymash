@@ -50,3 +50,25 @@ test("old V2 carts remain explicitly ambiguous rather than silently converting t
   assert.equal(hydrated[0].format, "cans");
   assert.match(formatLabels.cans, /format TBD/);
 });
+
+
+test("all three requested package formats remain independently editable for one flavor", () => {
+  let cart = adjustQuantity([], "purple-reign", "can", 3);
+  cart = adjustQuantity(cart, "purple-reign", "six_pack", 2);
+  cart = adjustQuantity(cart, "purple-reign", "keg", 1);
+  assert.equal(quantityFor(cart, "purple-reign", "can"), 3);
+  assert.equal(quantityFor(cart, "purple-reign", "six_pack"), 2);
+  assert.equal(quantityFor(cart, "purple-reign", "keg"), 1);
+  assert.equal(kegCount(cart), 1);
+  cart = adjustQuantity(cart, "purple-reign", "six_pack", -2);
+  assert.equal(quantityFor(cart, "purple-reign", "six_pack"), 0);
+  assert.equal(quantityFor(cart, "purple-reign", "can"), 3);
+  assert.equal(quantityFor(cart, "purple-reign", "keg"), 1);
+});
+test("old ambiguous cans remain a separate line when new can variants are selected", () => {
+  const old = sanitizeCart([{ slug: "purple-reign", format: "cans", quantity: 2 }], new Set(["purple-reign"]));
+  const cart = adjustQuantity(old, "purple-reign", "can", 3);
+  assert.equal(quantityFor(cart, "purple-reign", "cans"), 2);
+  assert.equal(quantityFor(cart, "purple-reign", "can"), 3);
+  assert.equal(quantityFor(cart, "purple-reign", "six_pack"), 0);
+});

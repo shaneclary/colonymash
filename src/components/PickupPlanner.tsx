@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Drink } from "@/content/drinks";
+import { isPouring, tapList, type Drink } from "@/content/drinks";
 import {
   adjustQuantity, canRequest, deliveryProposal, eligibility,
   formatLabels, quantityFor, sanitizeCart, totalUnits,
@@ -9,13 +9,12 @@ import {
 } from "@/lib/commerce";
 
 const storageKey = "cm-pickup-cart-v2";
-const formatChoices: { id: NewFormat; label: string; note: string }[] = [
-  { id: "can", label: "Single cans", note: "Request individual cans" },
-  { id: "six_pack", label: "6-packs", note: "Each quantity represents one 6-pack" },
-  { id: "keg", label: "Kegs", note: "Size and deposit to confirm" },
+const formatChoices: { id: NewFormat; label: string }[] = [
+  { id: "can", label: "Single cans" },
+  { id: "six_pack", label: "6-packs" },
+  { id: "keg", label: "Kegs" },
 ];
 type Category = "all" | "seltzer" | "beer";
-const formatWords = { can: "single cans", six_pack: "6-packs", keg: "kegs" } as const;
 
 function QuantityStepper({ label, quantity, onChange }: {
   label: string;
@@ -34,9 +33,10 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
   initialSlug: string;
   contactEmail: string;
 }) {
-  const [format, setFormat] = useState<NewFormat>("can");
   const [category, setCategory] = useState<Category>("all");
+  const [showArchive, setShowArchive] = useState(!tapList.confirmed);
   const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] = useState(12);
   const [cart, setCart] = useState<RequestLine[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [fulfillment, setFulfillment] = useState<Fulfillment>("pickup");
@@ -53,6 +53,7 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
     if (selected) {
       setSearch(selected.name);
       setCategory("all");
+      if (!tapList.confirmed || !isPouring(selected)) setShowArchive(true);
     }
     setLoaded(true);
   }, [drinks, initialSlug]);
@@ -66,9 +67,12 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
   const catalog = useMemo(() => {
     const term = search.trim().toLowerCase();
     return drinks.filter((drink) =>
+      (showArchive || isPouring(drink)) &&
       (category === "all" || drink.kind === category) &&
       (!term || [drink.name, drink.style, drink.detail ?? ""].join(" ").toLowerCase().includes(term)));
-  }, [drinks, search, category]);
+  }, [drinks, search, category, showArchive]);
+  // Search should reveal every matching flavor immediately; otherwise show a short, mobile-friendly page.
+  const visibleCatalog = search.trim() ? catalog : catalog.slice(0, visibleCount);
   const valid = canRequest(cart, fulfillment);
   const allowed = eligibility(cart);
   const count = totalUnits(cart);
@@ -89,26 +93,24 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
   const mailto = "mailto:" + contactEmail +
     "?subject=" + encodeURIComponent("Colony Mash cans and kegs — availability inquiry") +
     "&body=" + encodeURIComponent(details);
-  const selectedChoice = formatChoices.find((choice) => choice.id === format) ?? formatChoices[0];
   const update = (slug: string, choice: NewFormat, delta: number) => {
     if (drinks.some((drink) => drink.slug === slug)) setCart((current) => adjustQuantity(current, slug, choice, delta));
   };
 
   return <div className="cm-orderflow">
     <div className="cm-orderflow__steps" aria-label="How it works">
-      <span><b>1</b> Choose format</span><span><b>2</b> Tap + beside flavors</span><span><b>3</b> Review request</span>
+      <span><b>1</b> Find a flavor</span><span><b>2</b> Set can, 6-pack &amp; keg quantities</span><span><b>3</b> Review request</span>
     </div>
 
     <section className="cm-orderflow__controls" aria-labelledby="order-format-heading">
-      <h3 id="order-format-heading" className="cm-sign-sm">01 / What would you like?</h3>
-      <div role="group" aria-label="Choose can or keg format" className="cm-orderflow__formats">
-        {formatChoices.map((choice) => <button key={choice.id} type="button"
-          className={"cm-orderflow__format" + (choice.id === format ? " cm-orderflow__format--active" : "")}
-          aria-pressed={format === choice.id} onClick={() => setFormat(choice.id)}>
-          {choice.label}
-        </button>)}
-      </div>
-      <p className="cm-orderflow__hint" role="status">{selectedChoice.note}. Packaging is a request only; availability and prices are not confirmed.</p>
+      <h3 id="order-format-heading" className="cm-sign-sm">01 / Find a flavor</h3>
+      <p className="cm-orderflow__hint">Each flavor offers three separate quantity controls: individual cans, 6-packs, and kegs. These are <strong>availability inquiries</strong>, not verified packaged products or a checkout.</p>
+      {tapList.confirmed ?
+        <div className="cm-orderflow__categories" role="group" aria-label="Which flavor list to browse">
+          <button type="button" aria-pressed={!showArchive} onClick={() => { setShowArchive(false); setSearch(""); }}>Current rotation</button>
+          <button type="button" aria-pressed={showArchive} onClick={() => { setShowArchive(true); setSearch(""); }}>All past releases</button>
+        </div> :
+        <p className="cm-orderflow__hint">The brewery's live rotation is not verified yet. Browse the historical library to ask about a product; none of these formats are confirmed in stock.</p>}
       <div className="cm-orderflow__filters">
         <label className="cm-orderflow__search" htmlFor="order-search">
           <span>Find a flavor</span>
@@ -121,30 +123,41 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
               onClick={() => setCategory(id)}>{label}</button>)}
         </div>
       </div>
-      <p className="cm-orderflow__count" role="status">{catalog.length} RELEASES IN THE LIBRARY · SELECT {formatWords[format].toUpperCase()}</p>
+      <p className="cm-orderflow__count" role="status">{catalog.length} {showArchive ? "CATALOGED RELEASES" : "CURRENT ROTATION RELEASES"} · PICK QUANTITIES BELOW</p>
     </section>
 
     <section aria-labelledby="order-flavors-heading">
       <h3 id="order-flavors-heading" className="cm-orderflow__heading">02 / Pick your flavors</h3>
       <div className="cm-orderflow__catalog">
-        {catalog.map((drink) => {
-          const n = quantityFor(cart, drink.slug, format);
-          const other = cart.filter((line) => line.slug === drink.slug && line.format !== format);
+        {visibleCatalog.map((drink) => {
+          const selected = formatChoices.reduce((sum, choice) => sum + quantityFor(cart, drink.slug, choice.id), 0);
+          const legacyCans = quantityFor(cart, drink.slug, "cans");
           return <article key={drink.slug} className="cm-orderflow__item" id={"order-" + drink.slug}>
             <div className={"cm-orderflow__color " + (drink.kind === "seltzer" ?
               "cm-fill--" + drink.flavor : "cm-fill--b" + (drink.shade ?? 3))} aria-hidden="true" />
             <div className="cm-orderflow__item-main">
               <strong className="cm-orderflow__name">{drink.name}</strong>
               <span className="cm-orderflow__detail">{drink.kind === "seltzer" ? "Hard seltzer" : (drink.style || "Beer")} · {drink.abv.toFixed(1)}% ABV</span>
-              {other.length > 0 && <span className="cm-orderflow__also">
-                Also selected: {other.map((line) => line.quantity + " " + formatLabels[line.format]).join(" · ")}
+              {selected > 0 && <span className="cm-orderflow__also">{selected} selected across formats</span>}
+              {legacyCans > 0 && <span className="cm-orderflow__also">
+                Old request: {legacyCans} cans (package format unconfirmed). Edit in your request below.
               </span>}
             </div>
-            <QuantityStepper label={formatLabels[format] + " of " + drink.name}
-              quantity={n} onChange={(delta) => update(drink.slug, format, delta)} />
+            <div className="cm-orderflow__variants" role="group" aria-label={"Requested packaging quantities for " + drink.name}>
+              {formatChoices.map((choice) => <div className="cm-orderflow__variant" key={choice.id}>
+                <span className="cm-orderflow__variant-label">{choice.label}</span>
+                <QuantityStepper label={choice.label + " of " + drink.name}
+                  quantity={quantityFor(cart, drink.slug, choice.id)}
+                  onChange={(delta) => update(drink.slug, choice.id, delta)} />
+              </div>)}
+            </div>
           </article>;
         })}
         {catalog.length === 0 && <p className="cm-orderflow__empty">No releases match your search. Try another flavor name or style.</p>}
+        {!search.trim() && catalog.length > visibleCount && <button type="button" className="cm-orderflow__loadmore"
+          onClick={() => setVisibleCount((count) => Math.min(catalog.length, count + 12))}>
+          Show more flavors ({catalog.length - visibleCount} remaining) ↓
+        </button>}
       </div>
     </section>
 
@@ -156,7 +169,7 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
         </div>
         <strong className="cm-orderflow__total">{count} selected</strong>
       </div>
-      {rows.length === 0 ? <p className="cm-orderflow__empty">Your list is empty. Choose single cans, 6-packs or kegs, then tap + beside any flavor.</p> :
+      {rows.length === 0 ? <p className="cm-orderflow__empty">Your list is empty. Use the + buttons for single cans, 6-packs, or kegs next to any flavor.</p> :
         <ul className="cm-orderflow__summary">
           {rows.map((line) => <li key={line.slug + "|" + line.format}>
             <div className="cm-orderflow__summary-label">

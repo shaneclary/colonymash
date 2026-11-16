@@ -1,0 +1,26 @@
+/* Practical launch rotation. No sample taps are presented as current. */
+.cm-rotation-pending { display: grid; gap: 18px; align-content: start; padding: clamp(20px,3vw,36px); border: 2px solid currentColor; }
+.cm-rotation-pending__eyebrow { font: 700 12px/1.6 var(--font-cm-mono); letter-spacing: .04em; }
+.cm-rotation-pending h3 { margin: 0; font-variation-settings: "wdth" 95; letter-spacing: -.015em; }
+.cm-rotation-pending p { max-width: 650px; font-size: clamp(16px,1.6vw,20px); line-height: 1.5; margin: 0; }
+.cm-rotation-pending__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.cm-current-rotation { display: grid; gap: 22px; width: 100%; }
+.cm-current-rotation__stamp { font: 700 12px/1.6 var(--font-cm-mono); letter-spacing: .04em; margin: 0; }
+.cm-current-rotation__groups { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); gap: clamp(20px,4vw,55px); }
+.cm-current-rotation__group h3 { display: flex; justify-content: space-between; gap: 10px; font: 900 clamp(20px,2.6vw,33px)/1.1 var(--font-cm-display); margin: 0 0 14px; }
+.cm-current-rotation__group h3 span { font: 700 14px/1.5 var(--font-cm-mono); }
+.cm-current-rotation__list { list-style: none; margin: 0; padding: 0; display: grid; }
+.cm-current-rotation__list li { display: grid; grid-template-columns: 12px minmax(0,1fr) auto; gap: 12px; align-items: center; border-top: 2px solid currentColor; padding: 12px 0; }
+.cm-current-rotation__swatch { display: block; height: 48px; min-width: 12px; border: 1px solid #888; }
+.cm-current-rotation__product { display: grid; gap: 5px; min-width: 0; }
+.cm-current-rotation__product a { font-size: 18px; font-weight: 900; text-decoration: none; line-height: 1.15; }
+.cm-current-rotation__product a:hover { text-decoration: underline; }
+.cm-current-rotation__product span { font-size: 13px; line-height: 1.4; }
+.cm-current-rotation__action { font-size: 13px; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; }
+.cm-current-rotation > p:last-child { line-height: 1.5; max-width: 750px; }
+@media(max-width:490px) {
+ .cm-current-rotation__list li { grid-template-columns: 10px minmax(0,1fr); }
+ .cm-current-rotation__action { grid-column: 2; }
+ .cm-current-rotation__product a { font-size: 17px; }
+ .cm-rotation-pending__actions .cm-btn { width: 100%; white-space: normal; }
+}
