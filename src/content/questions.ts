@@ -133,6 +133,25 @@ export const questions = [
     assumed: "The updates page is a disabled signup preview and does not collect telephone numbers or subscriptions.",
     file: "src/app/updates/page.tsx; src/components/UpdatesPreview.tsx",
   },
+
+  {
+    id: "portal-operations",
+    ask: "For an actual operations system: who should have admin access, which current POS and inventory systems are used, and which staff manage stock, purchasing, production and merchant requests?",
+    assumed: "The /portal demo is client-side and public; all numbers, users, recipes and orders are fictitious. Real roles, server-side auth, MFA and permissioned storage are unimplemented.",
+    file: "src/components/portal/; docs/PORTAL_DEMO.md",
+  },
+  {
+    id: "portal-recipes",
+    ask: "Can Erik provide authoritative product recipes, batch yields, ingredients/units, actual stock counts, lead times, suppliers, safety-stock rules, and expected receipt dates?",
+    assumed: "Forecasts use invented demonstration recipes and unit conversions to illustrate how reorder alerts would function, not actual brewery formulations.",
+    file: "src/content/portal-demo.ts; src/lib/portal-forecast.ts",
+  },
+  {
+    id: "portal-trade",
+    ask: "What B2B buyer types, licensing checks, eligible regions, merchant-specific price lists, tax treatment, credit terms, pack sizes, wholesale order approval and delivery permissions are required?",
+    assumed: "The trade portal uses a publicly visible fake sample account and creates browser-only simulated requests; no legal trade authorization or real customer order exists.",
+    file: "src/components/portal/TradePortal.tsx; docs/PORTAL_DEMO.md",
+  },
 ] as const satisfies readonly Question[];
 
 export type QuestionId = (typeof questions)[number]["id"];
