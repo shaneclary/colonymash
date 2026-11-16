@@ -33,3 +33,8 @@
 **Success criteria:** A first-time phone visitor can answer "what's pouring?", ask for cans or kegs, plan a visit, and follow the brewery without confronting a flavor-creation program or misleading stock information.
 
 - Once the brewery confirms the active rotation, the order interface defaults to those flavors and allows an explicit switch to the historical archive. Draft availability does not imply packaged stock.
+
+
+## Order builder refinement: inline formats per flavor
+The customer no longer switches a global package-format selector. Every listed flavor exposes independent counters for **single cans**, **6-packs**, and **kegs** at once. On narrow phones, these are three readable rows; wider screens use a compact three-column layout. The list is initially limited to 12 releases with a "show more" action to reduce endless scrolling; searching reveals all matches. Editing quantities updates the same saved cart and email inquiry.
+This is still not a representation of real inventory, verified packages or prices. No money is collected, no delivery is scheduled, and the user must send the generated email themselves. Existing old-format ambiguous canned requests are preserved without being converted to singles or six-packs.

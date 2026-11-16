@@ -12,10 +12,10 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
   return <>
     <section data-theme="ink" className="cm-section cm-root"><div className="cm-wrap cm-stack cm-stack--lg">
       <p className="cm-label">CANS & KEGS</p><h1 className="cm-sign-xl">Take Colony Mash home.</h1>
-      <p className="cm-lede cm-measure">Pick a format, tap + beside each flavor, then review your request. No repeated dropdowns.</p>
+      <p className="cm-lede cm-measure">Choose your flavors and adjust single cans, 6-packs, and kegs directly on each card. Review everything in one request.</p>
     </div></section>
     <section data-theme="paper" className="cm-section cm-root"><div className="cm-wrap cm-stack cm-stack--lg cm-stack--fill">
-      <div className="cm-section__head"><h2 className="cm-sign-lg">Choose. Tap. Done.</h2>
+      <div className="cm-section__head"><h2 className="cm-sign-lg">Choose your flavors.</h2>
         <span className="cm-inline"><span className="cm-tag cm-tag--dashed cm-label">Preview — no payment</span><Confirm id="pickup-products" /></span></div>
       <PickupPlanner drinks={drinks} initialSlug={initial} contactEmail={site.email} />
     </div></section>
