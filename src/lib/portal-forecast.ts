@@ -120,7 +120,7 @@ export function ingredientForecast(state: DemoState, today: string): IngredientN
       estimate.totalBatches > 0 && estimate.recipe.bill.some(line => line.ingredientId === item.id))
       .map(estimate => estimate.targetDate).filter(Boolean).sort();
     const reorderBy = pertinentDates.length ? addDays(pertinentDates[0], -item.leadDays) : "";
-    const status = suggestedOrder > 0 && (!reorderBy || reorderBy <= today)
+    const status: IngredientNeed["status"] = suggestedOrder > 0 && (!reorderBy || reorderBy <= today)
       ? "order-now" : suggestedOrder > 0 ? "watch" : "covered";
     return { item, required, projected, suggestedOrder, reorderBy, status };
   }).sort((a, b) => {
