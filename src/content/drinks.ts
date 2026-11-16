@@ -111,8 +111,8 @@ export const drinks: Drink[] = [...allBeers, ...allSeltzers];
 /** "Pouring" means on the list and not kicked. A pouring drink gets a full dot and a solid edge. */
 export const isPouring = (drink: Drink) => drink.onTap && !drink.kickedAt;
 
-export const beersOnTap = allBeers.filter((beer) => beer.onTap);
-export const seltzersOnTap = allSeltzers.filter((seltzer) => seltzer.onTap);
+export const beersOnTap = allBeers.filter(isPouring);
+export const seltzersOnTap = allSeltzers.filter(isPouring);
 export const seltzersPouring = seltzersOnTap.filter(isPouring);
 export const drinksOnTap: Drink[] = [...beersOnTap, ...seltzersOnTap];
 

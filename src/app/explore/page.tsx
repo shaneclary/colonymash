@@ -2,12 +2,12 @@
 import { CatalogExplorer } from "@/components/CatalogExplorer";
 import { drinks } from "@/content/drinks";
 import { pageMeta } from "@/lib/seo";
-export const metadata = pageMeta({ title: "Explore the releases", description: "Explore the Colony Mash beer and hard seltzer library.", path: "/explore" });
+export const metadata = pageMeta({ title: "Past release archive", description: "Explore historical Colony Mash beers and hard seltzer releases. This is not a verified live tap list or packaged inventory.", path: "/explore" });
 export default function ExplorePage() {
   return <>
     <section data-theme="ink" className="cm-section cm-root"><div className="cm-wrap cm-stack cm-stack--lg">
-      <p className="cm-label">THE COLONY MASH LIBRARY</p><h1 className="cm-sign-xl">Every pour has a story.</h1>
-      <p className="cm-lede cm-measure">Beer in black and white. Seltzer in living color.</p>
+      <p className="cm-label">PAST RELEASES / THE COLONY MASH LIBRARY</p><h1 className="cm-sign-xl">The flavor archive.</h1>
+      <p className="cm-lede cm-measure">Past and present cataloged beers and seltzers. For current pours, visit the verified tap rotation.</p>
     </div></section>
     <section data-theme="paper" className="cm-section cm-root"><div className="cm-wrap"><CatalogExplorer drinks={drinks} /></div></section>
   </>;

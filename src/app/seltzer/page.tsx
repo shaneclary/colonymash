@@ -1,19 +1,19 @@
 import { Confirm } from "@/components/Confirm";
 import { FlavorCard } from "@/components/FlavorCard";
 import { Photo } from "@/components/Photo";
-import { allSeltzers, isPouring, seltzerLine, seltzerProcess, seltzersPouring } from "@/content/drinks";
+import { allSeltzers, seltzerLine, seltzerProcess, seltzersPouring, tapList } from "@/content/drinks";
 import { photos } from "@/content/photos";
 import { routes } from "@/content/site";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta({
-  title: "Hard seltzer",
-  description: "Hard seltzer made at Colony Mash in Atascadero. Every flavor, its ABV, and which ones are on tap this week.",
+  title: "Colony Cabana hard seltzer archive",
+  description: "Explore Colony Mash's hard seltzer release archive in Atascadero. Current pours are verified separately.",
   path: routes.seltzer,
 });
 
 export default function SeltzerPage() {
-  const notPouring = allSeltzers.filter((seltzer) => !isPouring(seltzer));
+  const current = tapList.confirmed ? seltzersPouring : [];
   return (
     <>
       <section data-theme="paper" className="cm-section cm-root">
@@ -25,7 +25,7 @@ export default function SeltzerPage() {
             </p>
             <h1 className="cm-shout-xl">Seltzer, in color</h1>
             <p className="cm-lede cm-measure">
-              {allSeltzers.length} flavors so far. {seltzersPouring.length} on tap this week.
+              {allSeltzers.length} cataloged seltzer releases. Current pouring status is published only after brewery verification.
             </p>
             <p className="cm-inline cm-body">
               {seltzerProcess}
@@ -36,37 +36,38 @@ export default function SeltzerPage() {
         </div>
       </section>
 
-      <section data-theme="ink" className="cm-section cm-root" aria-labelledby="seltzer-on">
+      {tapList.confirmed && current.length > 0 && <section data-theme="ink" className="cm-section cm-root" aria-labelledby="seltzer-on">
         <div className="cm-wrap cm-stack cm-stack--lg cm-stack--fill">
           <div className="cm-section__head">
             <h2 className="cm-sign-lg" id="seltzer-on">
-              On tap
+              Currently pouring
             </h2>
             <span className="cm-inline">
-              <span className="cm-data">{seltzersPouring.length}</span>
+              <span className="cm-data">{current.length}</span>
               <Confirm id="taps" />
             </span>
           </div>
           <ul className="cm-cards">
-            {seltzersPouring.map((seltzer) => (
+            {current.map((seltzer) => (
               <li key={seltzer.slug}>
                 <FlavorCard seltzer={seltzer} />
               </li>
             ))}
           </ul>
         </div>
-      </section>
+      </section>}
 
       <section data-theme="paper" className="cm-section cm-root" aria-labelledby="seltzer-off">
         <div className="cm-wrap cm-stack cm-stack--lg cm-stack--fill">
           <div className="cm-section__head">
             <h2 className="cm-sign-lg" id="seltzer-off">
-              Not pouring right now
+              Seltzer release archive
             </h2>
-            <span className="cm-data">{notPouring.length}</span>
+            <span className="cm-data">{allSeltzers.length}</span>
           </div>
+          <p className="cm-body">The archive includes historical flavors, not a verified tap list or packaged stock. See the current rotation for brewery-confirmed pours.</p>
           <ul className="cm-cards">
-            {notPouring.map((seltzer) => (
+            {allSeltzers.map((seltzer) => (
               <li key={seltzer.slug}>
                 <FlavorCard seltzer={seltzer} />
               </li>

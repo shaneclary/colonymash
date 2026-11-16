@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Confirm } from "@/components/Confirm";
 import { DrinkChip } from "@/components/DrinkChip";
 import { Photo } from "@/components/Photo";
-import { drinks, findDrink, formatAbv, isPouring, seltzerProcess, type Drink } from "@/content/drinks";
+import { drinks, findDrink, formatAbv, isPouring, seltzerProcess, tapList, type Drink } from "@/content/drinks";
 import { photos } from "@/content/photos";
 import { drinkPath, routes, site } from "@/content/site";
 import type { Flavor } from "@/lib/flavors";
@@ -39,7 +39,7 @@ const colorName: Record<Flavor, string> = {
 /** The class that floods the top of the page: a seltzer's color (dashed edges when it is not pouring), or a beer's shade of grey. */
 function headClass(drink: Drink): string {
   if (drink.kind === "beer") return drink.shade ? ` cm-shade--${drink.shade}` : "";
-  return ` cm-flavor--${drink.flavor}${isPouring(drink) ? "" : " cm-drinkhead--off"}`;
+  return ` cm-flavor--${drink.flavor}${tapList.confirmed && isPouring(drink) ? "" : " cm-drinkhead--off"}`;
 }
 
 export default async function DrinkPage({ params }: { params: Promise<Params> }) {
@@ -48,8 +48,9 @@ export default async function DrinkPage({ params }: { params: Promise<Params> })
   if (!drink) notFound();
 
   const isSeltzer = drink.kind === "seltzer";
-  const pouring = isPouring(drink);
-  const state = pouring ? "On tap" : drink.kickedAt ? `Kicked ${drink.kickedAt}` : "Not pouring right now";
+  const pouring = tapList.confirmed && isPouring(drink);
+  const state = !tapList.confirmed ? "Tap status awaiting brewery verification" :
+    pouring ? "On tap" : drink.kickedAt ? `Kicked ${drink.kickedAt}` : "Not pouring right now";
 
   return (
     <>

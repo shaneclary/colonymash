@@ -1,0 +1,23 @@
+/* V3 launch direction: reuse the original V3 spectrum, without the public flavor-creation prototype. */
+.v3-practical-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.v3-practical-colony__grid { display: grid; grid-template-columns: .82fr 1.18fr; gap: clamp(30px,6vw,85px); align-items: center; }
+.v3-practical-colony__specimen { background: #f7f1e4; color: #0a0a0a; border: 3px solid #0a0a0a;
+  min-height: 470px; padding: clamp(20px,3vw,35px); display: flex; flex-direction: column; justify-content: space-between;
+  align-items: flex-start; position: relative; }
+.v3-practical-colony__specimen::after { content: ""; position: absolute; inset: 8px; pointer-events: none;
+  border: 1px solid #0a0a0a; }
+.v3-practical-colony__stamp { font: 800 12px/1.65 var(--font-cm-mono); letter-spacing: .08em; }
+.v3-practical-colony__specimen > svg { flex: 1; max-width: 220px; align-self: center; }
+.v3-practical-colony__specimen > strong { font: 900 clamp(30px,3.3vw,45px)/1 var(--font-cm-display); }
+.v3-practical-colony__copy { display: grid; gap: 27px; justify-items: start; }
+.v3-practical-colony__copy > p:not(.v3-sectionnum) { font-size: 18px; line-height: 1.55; max-width: 590px; }
+.v3-practical-colony__copy .v3-disclaimer { font-size: 13px!important; }
+.v3-practical-rotation .cm-rotation-pending { max-width: 900px; }
+.v3 .cm-rotation-pending h3 { font-variation-settings: "wdth" 95; line-height: 1.1; }
+@media(max-width:850px){.v3-practical-colony__grid { grid-template-columns: 1fr; }}
+@media(max-width:550px){
+  .v3-practical-actions > .v3-button { width: 100%; }
+  .v3-practical-colony__specimen { min-height: 360px; }
+  .v3-practical-colony__specimen > svg { max-height: 170px; }
+  .v3-practical-colony__copy > p:not(.v3-sectionnum) { font-size: 17px; }
+}

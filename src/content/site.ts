@@ -48,6 +48,7 @@ export const routes = {
   explore: "/explore",
   order: "/order",
   updates: "/updates",
+  community: "/community",
 } as const;
 
 export const drinkPath = (slug: string) => `${routes.onTap}/${slug}`;
@@ -55,8 +56,7 @@ export const drinkPath = (slug: string) => `${routes.onTap}/${slug}`;
 /** Main navigation. All ordering remains an availability inquiry until integration. */
 export const nav = [
   { label: "On tap", href: routes.onTap },
-  { label: "Explore", href: routes.explore },
   { label: "Cans & kegs", href: routes.order },
+  { label: "The Colony", href: routes.community },
   { label: "Visit", href: routes.visit },
-  { label: "Updates", href: routes.updates },
 ] as const;
