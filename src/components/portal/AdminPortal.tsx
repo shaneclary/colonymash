@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  demoPackVolumes, demoProducts, demoRecipes, plusDays,
+  demoPackVolumes, demoProducts, demoRecipes, merchantDemoId, plusDays,
   type TradeOrder, type TradeOrderStatus, type PackFormat,
 } from "@/content/portal-demo";
 import {
@@ -11,14 +11,16 @@ import {
   ingredientForecast, nextOrderStatus, productionEstimates, transitionOrder,
   updateIngredient,
 } from "@/lib/portal-forecast";
+import { merchantStockForecast } from "@/lib/merchant-operations";
 import { PortalFrame } from "./PortalFrame";
 import { useDemoLedger } from "./useDemoPortal";
 
-type View = "overview" | "orders" | "ingredients" | "production" | "finished";
+type View = "overview" | "orders" | "ingredients" | "production" | "finished" | "partners";
 const tabs: { id: View; label: string }[] = [
   { id: "overview", label: "Overview" }, { id: "orders", label: "Orders" },
   { id: "ingredients", label: "Ingredients" }, { id: "production", label: "Production & recipes" },
   { id: "finished", label: "Packaged stock" },
+  { id: "partners", label: "Merchant accounts" },
 ];
 const formatLabels: Record<PackFormat, string> = {
   can: "Single cans (demo)", six_pack: "6-packs (demo)", keg: "Kegs (demo)",
@@ -55,6 +57,10 @@ export function AdminPortal() {
   const {state,setState,loaded,reset,updateFinished} = useDemoLedger();
   const [view,setView] = useState<View>("overview");
   const today = plusDays(0);
+  const merchantViews = [
+    { id: merchantDemoId, name: "Coastal Partner — Demo" },
+    { id: "venue-demo", name: "Sample Events Venue — Demo" },
+  ];
   const forecasts = useMemo(() => ingredientForecast(state,today),[state,today]);
   const production = useMemo(() => productionEstimates(state),[state]);
   const requested = state.orders.filter(o => o.status === "requested");
@@ -210,6 +216,55 @@ export function AdminPortal() {
       </table></div>
       <p className="cm-portal__muted">Actual sales require separate SKU codes, lot/batch traceability, packaging equipment and deposit tracking, reliable reservations, physical counts and POS reconciliation.</p>
     </section>}
+    {view==="partners" && <section className="cm-portal__panel">
+      <div className="cm-portal__panel-head">
+        <div><p className="cm-portal__overline">PARTNER INVENTORY & FUTURE WHOLESALE DEMAND</p>
+          <h2>Merchant accounts</h2></div>
+        <span>Sample account activity only</span>
+      </div>
+      <p className="cm-portal__muted">This view tracks each venue's self-reported inventory separately from the brewery's finished goods. It surfaces low-stock formats, accepted/scheduled inbound, repeat-order plans and future requests. These are browser-local records, not actual customer accounts or verified stock.</p>
+      {merchantViews.map(merchant=>{
+        const forecasts = merchantStockForecast(state,merchant.id,today);
+        const tracked=forecasts.filter(x=>x.stock.targetStock>0||x.stock.onHand>0);
+        const low=tracked.filter(x=>x.status==="low");
+        const scheduled=state.orders.filter(x=>x.merchantId===merchant.id&&x.neededBy>=today&&x.status!=="cancelled"&&x.status!=="fulfilled");
+        const series=state.merchantSeries.filter(x=>x.merchantId===merchant.id);
+        return <div className="cm-portal__partner" key={merchant.id}>
+          <div className="cm-portal__panel-head">
+            <div><p className="cm-portal__overline">{merchant.id}</p><h2>{merchant.name}</h2></div>
+            <strong>{low.length} low-stock formats · {scheduled.length} upcoming requests</strong>
+          </div>
+          <div className="cm-portal__tablewrap"><table className="cm-portal__table cm-portal__table--finished">
+            <thead><tr><th>Release</th><th>Package</th><th>Buyer on hand</th><th>Buyer target</th><th>Inbound*</th><th>Recommended</th><th>Alert</th></tr></thead>
+            <tbody>{tracked.map(item=><tr key={item.stock.productId+"|"+item.stock.format}>
+              <th scope="row">{demoProducts.find(p=>p.id===item.stock.productId)?.name??item.stock.productId}</th>
+              <td>{item.stock.format==="six_pack"?"6-packs":item.stock.format==="can"?"Single cans":"Kegs"}</td>
+              <td>{item.stock.onHand}</td><td>{item.stock.targetStock}</td>
+              <td>{item.inbound}</td><td><strong>{item.suggested}</strong></td><td>{item.status}</td>
+            </tr>)}</tbody>
+          </table></div>
+          <div className="cm-portal__two">
+            <div><h3 className="cm-portal__partner-sub">Future requests</h3>
+              {scheduled.length===0?<p className="cm-portal__muted">No upcoming requests.</p>:
+                scheduled.slice(0,8).sort((a,b)=>a.neededBy.localeCompare(b.neededBy)).map(order=>
+                  <div className="cm-portal__upcoming" key={order.id}>
+                    <div><span>{dayLabel(order.neededBy)} · {order.status}</span>
+                      <strong>{order.lines.map(x=>x.quantity+" × "+(demoProducts.find(p=>p.id===x.productId)?.name??x.productId)).join(" · ")}</strong>
+                    </div><StatusLabel status={order.status}/></div>)}
+            </div>
+            <div><h3 className="cm-portal__partner-sub">Repeat schedules</h3>
+              {series.length===0?<p className="cm-portal__muted">No repeat plans yet.</p>:
+                series.map(plan=><div className="cm-portal__upcoming" key={plan.id}>
+                  <div><span>{plan.active?"Active":"Paused"} · every {plan.cadenceDays} days</span>
+                    <strong>Next unqueued: {dayLabel(plan.nextDate)}</strong></div>
+                </div>)}
+            </div>
+          </div>
+        </div>;
+      })}
+      <p className="cm-portal__muted">*Inbound means an accepted/scheduled sample request within the venue's lead-time window, not a confirmed shipment. Existing pending requests require separate approval in the Orders tab.</p>
+    </section>}
+
     <div className="cm-portal__demo-note">THIS IS A FICTIONAL PLANNING SANDBOX — NOT A LIVE INVENTORY, PURCHASE ORDER, OR MERCHANT AUTHORIZATION SYSTEM. <Link href="/portal">Sample logins ↗</Link></div>
   </PortalFrame>;
 }

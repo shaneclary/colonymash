@@ -13,8 +13,25 @@ export type Product = { id: string; name: string; kind: "beer" | "seltzer"; colo
 export type FinishedStock = { productId: string; can: number; six_pack: number; keg: number };
 export type ProductionPlan = { recipeId: string; batches: number; targetDate: string };
 export type TradeLine = { productId: string; format: PackFormat; quantity: number };
-export type TradeOrder = { id: string; merchantId: string; merchantName: string; createdAt: string; neededBy: string; lines: TradeLine[]; status: TradeOrderStatus; notes: string };
-export type DemoState = { version: 1; ingredients: Ingredient[]; finished: FinishedStock[]; production: ProductionPlan[]; orders: TradeOrder[] };
+export type TradeOrder = { id: string; merchantId: string; merchantName: string; createdAt: string; neededBy: string; lines: TradeLine[]; status: TradeOrderStatus; notes: string; seriesId?: string };
+export type MerchantStock = {
+  merchantId: string; productId: string; format: PackFormat; onHand: number;
+  minStock: number; targetStock: number; weeklyUse: number; leadDays: number;
+};
+export type MerchantMovement = {
+  id: string; merchantId: string; productId: string; format: PackFormat;
+  delta: number; kind: "sale" | "count" | "receipt"; at: string; note: string; orderId?: string;
+};
+export type MerchantSeries = {
+  id: string; merchantId: string; merchantName: string; lines: TradeLine[];
+  cadenceDays: 7 | 14 | 28; nextDate: string; active: boolean; notes: string;
+};
+export type MerchantReceipt = { merchantId: string; orderId: string; receivedAt: string };
+export type DemoState = {
+  version: 2; ingredients: Ingredient[]; finished: FinishedStock[]; production: ProductionPlan[];
+  orders: TradeOrder[]; merchantStock: MerchantStock[]; merchantMovements: MerchantMovement[];
+  merchantSeries: MerchantSeries[]; merchantReceipts: MerchantReceipt[];
+};
 
 export const demoAccounts = [
   { email: "erik.demo@colonymash.test", password: "MashDemo2026", role: "admin" as const, display: "Erik's operations view", company: "Colony Mash — Demo" },
@@ -45,7 +62,7 @@ export function plusDays(dayOffset: number, reference = new Date()): string {
 }
 export function demoSeed(reference = new Date()): DemoState {
   return {
-    version: 1,
+    version: 2,
     ingredients: [
       { id: "base", name: "Fermentable base (illustrative)", unit: "kg", onHand: 31, incoming: 0, safety: 12, reorderPoint: 24, leadDays: 5, supplier: "Demo Ingredient Supplier" },
       { id: "fruit", name: "Fruit blend (illustrative)", unit: "L", onHand: 9, incoming: 0, safety: 5, reorderPoint: 14, leadDays: 7, supplier: "Demo Fruit Supplier" },
@@ -66,6 +83,23 @@ export function demoSeed(reference = new Date()): DemoState {
       { recipeId: "demo-purple", batches: 1, targetDate: plusDays(8, reference) },
       { recipeId: "demo-lager", batches: 1, targetDate: plusDays(11, reference) },
     ],
+
+    merchantStock: [
+      { merchantId: merchantDemoId, productId: "cherry-limeade", format: "six_pack", onHand: 7, minStock: 5, targetStock: 16, weeklyUse: 5, leadDays: 7 },
+      { merchantId: merchantDemoId, productId: "cherry-limeade", format: "keg", onHand: 1, minStock: 1, targetStock: 3, weeklyUse: 1.2, leadDays: 10 },
+      { merchantId: merchantDemoId, productId: "purple-reign", format: "six_pack", onHand: 3, minStock: 4, targetStock: 14, weeklyUse: 6, leadDays: 7 },
+      { merchantId: merchantDemoId, productId: "purple-reign", format: "keg", onHand: 0, minStock: 1, targetStock: 2, weeklyUse: 0.6, leadDays: 10 },
+      { merchantId: merchantDemoId, productId: "rickys-rice-lager", format: "six_pack", onHand: 10, minStock: 5, targetStock: 18, weeklyUse: 7, leadDays: 7 },
+      { merchantId: merchantDemoId, productId: "rickys-rice-lager", format: "keg", onHand: 1, minStock: 1, targetStock: 3, weeklyUse: 1, leadDays: 10 },
+      { merchantId: merchantDemoId, productId: "rickys-rice-lager", format: "can", onHand: 14, minStock: 6, targetStock: 30, weeklyUse: 9, leadDays: 7 },
+      { merchantId: "venue-demo", productId: "purple-reign", format: "keg", onHand: 1, minStock: 1, targetStock: 3, weeklyUse: 1.1, leadDays: 9 },
+    ],
+    merchantMovements: [
+      { id:"DEMO-MOV-1", merchantId: merchantDemoId, productId: "purple-reign", format: "six_pack",
+        delta: -2, kind: "sale", at: plusDays(-2, reference), note: "Sample sell-through event (already reflected in sample on-hand)." },
+    ],
+    merchantSeries: [],
+    merchantReceipts: [],
     orders: [
       { id: "DEMO-1001", merchantId: merchantDemoId, merchantName: "Coastal Partner — Demo",
         createdAt: plusDays(-4, reference), neededBy: plusDays(6, reference), status: "accepted",

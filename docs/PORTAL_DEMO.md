@@ -58,3 +58,22 @@ All recipes, ingredient concentrations, supplier names, production outputs, acco
 7. In admin, use "Reset demo data" to restore sample values when finished.
 
 Review the prototype; do not use these sample logins as real business accounts.
+
+
+## Merchant inventory and planned orders (expanded demo)
+- Merchant-owned CM stock by SKU and package, separate from the brewery's finished goods.
+- Manual sell-through, stock counts, receipt events, and an inventory activity ledger.
+- Minimum quantity, target/par, estimated weekly usage and lead days; suggested restock quantities and stock-coverage warnings.
+- A one-click suggested reorder builder, plus reorder from historical trade requests.
+- Future request scheduling: weekly, biweekly, or four-weekly; queue 2–6 dated requests for separate brewery approval. Plans may be paused for future queue extensions or extended by two dates.
+- Buyers may cancel or move still-requested dates. Only brewery staff can advance acceptance/fulfillment.
+- On fulfillment, a buyer must mark the order as received to increase their own stock; double receiving is blocked.
+- Erik's admin demo adds a Merchant Accounts view showing separate partner stock, requested orders and standing series.
+
+**Forecast limitation:** Planned inbound consists of Accepted/Scheduled sample requests with needed-by dates inside the lead-time window, not guaranteed deliveries. Estimated consumption uses weekly usage and lead time, rounded to whole packages; recommended units are calculated against each merchant's target stock. This does not represent a POS-integrated inventory forecast.
+
+**Scheduling limitation:** The demo immediately creates future-dated Requested orders; it does not run an autonomous background scheduler or process recurring payments. Pausing a series affects only additional queued dates, not requests already created. Four weeks is not a true calendar month.
+
+**Security limitation:** Demo inventory belongs to fictional venues and is stored in localStorage. There is no real multi-tenant authorization or merchant-private server data. Production requires secure identity, tenant-enforced database access, verified orders, and physical inventory reconciliation.
+
+**Suggested test:** Merchant → My inventory → record use / change par → build suggested reorder → schedule 4 biweekly requests → Admin → Merchant Accounts / Orders → accept, schedule and fulfill a sample request → Merchant → Order history → Receive into my inventory.
