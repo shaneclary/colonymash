@@ -31,3 +31,5 @@
 - SEO remains under the existing NEXT_PUBLIC_INDEXABLE release gate; do not flip it until owner signoff, photos, hours, and product claims are reviewed.
 
 **Success criteria:** A first-time phone visitor can answer "what's pouring?", ask for cans or kegs, plan a visit, and follow the brewery without confronting a flavor-creation program or misleading stock information.
+
+- Once the brewery confirms the active rotation, the order interface defaults to those flavors and allows an explicit switch to the historical archive. Draft availability does not imply packaged stock.

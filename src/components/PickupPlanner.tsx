@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Drink } from "@/content/drinks";
+import { isPouring, tapList, type Drink } from "@/content/drinks";
 import {
   adjustQuantity, canRequest, deliveryProposal, eligibility,
   formatLabels, quantityFor, sanitizeCart, totalUnits,
@@ -36,6 +36,7 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
 }) {
   const [format, setFormat] = useState<NewFormat>("can");
   const [category, setCategory] = useState<Category>("all");
+  const [showArchive, setShowArchive] = useState(!tapList.confirmed);
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<RequestLine[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -53,6 +54,7 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
     if (selected) {
       setSearch(selected.name);
       setCategory("all");
+      if (!tapList.confirmed || !isPouring(selected)) setShowArchive(true);
     }
     setLoaded(true);
   }, [drinks, initialSlug]);
@@ -66,9 +68,10 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
   const catalog = useMemo(() => {
     const term = search.trim().toLowerCase();
     return drinks.filter((drink) =>
+      (showArchive || isPouring(drink)) &&
       (category === "all" || drink.kind === category) &&
       (!term || [drink.name, drink.style, drink.detail ?? ""].join(" ").toLowerCase().includes(term)));
-  }, [drinks, search, category]);
+  }, [drinks, search, category, showArchive]);
   const valid = canRequest(cart, fulfillment);
   const allowed = eligibility(cart);
   const count = totalUnits(cart);
@@ -108,7 +111,13 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
           {choice.label}
         </button>)}
       </div>
-      <p className="cm-orderflow__hint" role="status">{selectedChoice.note}. Packaging is a request only; availability and prices are not confirmed.</p>
+      <p className="cm-orderflow__hint" role="status">{selectedChoice.note}. Draft pours and packaged stock are separate; availability and prices must be confirmed.</p>
+      {tapList.confirmed ?
+        <div className="cm-orderflow__categories" role="group" aria-label="Which flavor list to browse">
+          <button type="button" aria-pressed={!showArchive} onClick={() => { setShowArchive(false); setSearch(""); }}>Current rotation</button>
+          <button type="button" aria-pressed={showArchive} onClick={() => { setShowArchive(true); setSearch(""); }}>All past releases</button>
+        </div> :
+        <p className="cm-orderflow__hint">The brewery's live rotation is not verified yet. Browse the historical library to ask about a product; none of these formats are confirmed in stock.</p>}
       <div className="cm-orderflow__filters">
         <label className="cm-orderflow__search" htmlFor="order-search">
           <span>Find a flavor</span>
@@ -121,7 +130,7 @@ export function PickupPlanner({ drinks, initialSlug, contactEmail }: {
               onClick={() => setCategory(id)}>{label}</button>)}
         </div>
       </div>
-      <p className="cm-orderflow__count" role="status">{catalog.length} RELEASES IN THE LIBRARY · SELECT {formatWords[format].toUpperCase()}</p>
+      <p className="cm-orderflow__count" role="status">{catalog.length} {showArchive ? "CATALOGED RELEASES" : "CURRENT ROTATION RELEASES"} · SELECT {formatWords[format].toUpperCase()}</p>
     </section>
 
     <section aria-labelledby="order-flavors-heading">
