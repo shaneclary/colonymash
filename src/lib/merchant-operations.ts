@@ -109,12 +109,13 @@ export function receiveMerchantOrder(state:DemoState, merchantId:string, orderId
   const lines=sanitizeTradeLines(order.lines);
   if(!lines.length) return state;
   let next=state;
-  lines.forEach((line,index)=>{
-    next=recordMerchantDelta(next,merchantId,line.productId,line.format,line.quantity,
+  for (const [index,line] of lines.entries()) {
+    const updated=recordMerchantDelta(next,merchantId,line.productId,line.format,line.quantity,
       "receipt",date,"RECEIPT-"+orderId+"-"+index,"Trade delivery received (simulated)",orderId);
-  });
-  // Do not mark receipt unless every line was applied.
-  if(next.merchantMovements.length===state.merchantMovements.length) return state;
+    // All lines must succeed: no partial receipts or falsely marked orders.
+    if(updated===next) return state;
+    next=updated;
+  }
   return {...next,merchantReceipts:[...state.merchantReceipts,{merchantId,orderId,receivedAt:date}]};
 }
 

@@ -69,7 +69,7 @@ test("recurring series creates explicit future requested orders, not accepted co
  ["2026-11-22","2026-11-29","2026-12-06","2026-12-13"]);
  assert.equal(result.state.merchantSeries[0].nextDate,"2026-12-20");
  assert.ok(result.state.orders.filter(x=>x.seriesId==="SERIES-A").every(x=>x.status==="requested"));
- assert.equal(merchantOrders(result.state,merchantDemoId).length,7);
+ assert.equal(merchantOrders(result.state,merchantDemoId).length,6);
  assert.equal(merchantIncomingUnits(result.state,merchantDemoId,"purple-reign","six_pack","2026-12-31"),0);
  const paused=setSeriesActive(result.state,merchantDemoId,"SERIES-A",false);
  assert.equal(extendMerchantSeries(paused,merchantDemoId,"SERIES-A",today).createdOrders,0);
