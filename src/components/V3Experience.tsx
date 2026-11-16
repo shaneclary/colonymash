@@ -132,7 +132,7 @@ export function V3Experience({ drinks }: { drinks: Drink[] }) {
         <div className="v3-inner v3-hero__grid">
           <div className="v3-hero__copy">
             <p className="v3-kicker"><span className="v3-kicker__square" /> COLONY MASH / A NEW KIND OF TAPROOM / V3</p>
-            <h1 id="v3-title" className="v3-hero__title">FIND<br />YOUR<br /><em>COLOR.</em></h1>
+            <h1 id="v3-title" className="v3-hero__title"><span>FIND YOUR</span><em>COLOR.</em></h1>
             <p className="v3-hero__lede">35 releases. A spectrum of possibility. A brewery you can explore, shape, and make your own.</p>
             <div className="v3-hero__actions">
               <a href="#v3-finder" className="v3-button v3-button--light">Discover your flavor <span aria-hidden="true">↗</span></a>
@@ -238,11 +238,16 @@ export function V3Experience({ drinks }: { drinks: Drink[] }) {
           <div className="v3-sectionhead">
             <p className="v3-sectionnum">03 / CABANA LAB</p>
             <h2 id="v3-lab-title" className="v3-display">GOOD IDEAS<br /><span>FERMENT HERE.</span></h2>
-            <p>Imagine a community that helps inspire what comes next. Try combining two ingredients, give the concept a look, and save or share the idea. Erik decides what ever makes it into a tank.</p>
+            <p>A little tropical field science. A little mid-century island imagination. Select botanical specimens, experiment with combinations, and save an imaginary flavor proposal. Erik decides what ever makes it into a tank.</p>
           </div>
           <div className="v3-lab__layout">
             <div className="v3-lab__controls">
-              <p className="v3-question-no">01 <span>CHOOSE A FRUIT</span></p>
+              <div className="v3-lab__fieldnote">
+                <span>FIELD RESEARCH / COLONY CABANA</span>
+                <strong>SPECIMEN STATION <i>NO. 001</i></strong>
+                <p>FORMULATION NOTES · BOTANICAL MATERIALS · EXPERIMENTAL COMBINATIONS</p>
+              </div>
+              <p className="v3-question-no">01 <span>CHOOSE A FRUIT SPECIMEN</span></p>
               <div className="v3-lab__buttons" role="group" aria-label="Choose a concept fruit">
                 {fruits.map((item) => <button type="button" key={item.id} aria-pressed={fruit === item.id}
                   className={"v3-lab__option " + (fruit === item.id ? "v3-lab__option--active" : "")} onClick={() => setFruit(item.id)}>
@@ -262,13 +267,23 @@ export function V3Experience({ drinks }: { drinks: Drink[] }) {
               <p className="v3-disclaimer">Concepts are fictional. Saving keeps them on this device, not in a public contest or brewery production queue. No vote is submitted.</p>
             </div>
             <div className={"v3-lab__poster cm-fill--" + chosenFruit.color} data-ink={chosenFruit.ink}>
-              <div className="v3-lab__posterhead"><span>THE CABANA LAB</span><span>EXPERIMENT / 001</span></div>
+              <svg className="v3-lab__botanical" viewBox="0 0 190 290" aria-hidden="true" focusable="false">
+                <path d="M48 266C60 229 73 187 78 142C82 97 95 46 138 14" fill="none" stroke="currentColor" strokeWidth="3"/>
+                <path d="M76 152C36 144 27 113 24 81C60 95 79 118 76 152ZM86 113C119 110 153 75 163 48C117 50 94 70 86 113ZM70 187C33 179 21 153 18 124C57 131 71 149 70 187ZM69 196C100 194 130 167 144 138C104 146 80 163 69 196ZM55 235C27 227 13 204 9 182C41 187 54 207 55 235Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="129" cy="239" r="22" fill="none" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="129" cy="239" r="13" fill="none" stroke="currentColor" strokeWidth="1"/>
+                <path d="M129 217V261M107 239H151M113 223L145 255M145 223L113 255" fill="none" stroke="currentColor" strokeWidth="1"/>
+              </svg>
+              <div className="v3-lab__posterhead"><span>CABANA LAB / FIELD STATION</span><span>EXPERIMENT / 001</span></div>
               <div className="v3-lab__posterbody">
                 <span className="v3-lab__posterbadge">COMMUNITY CONCEPT · NOT A REAL RELEASE</span>
                 <strong>{chosenFruit.label.toUpperCase()}<br />+ {accent.toUpperCase()}</strong>
                 <span>WHAT WOULD THIS TASTE LIKE?<br />THAT'S THE FUN OF THE EXPERIMENT.</span>
               </div>
               <div className="v3-lab__posterfooter">COLONY MASH / ATASCADERO, CALIFORNIA <span aria-hidden="true">✳</span></div>
+              <svg className="v3-lab__tiki" viewBox="0 0 270 25" aria-hidden="true" focusable="false">
+                <path d="M0 12.5H270M2 12.5L15 2L28 12.5L15 23ZM36 12.5L49 2L62 12.5L49 23ZM70 12.5L83 2L96 12.5L83 23ZM104 12.5L117 2L130 12.5L117 23ZM138 12.5L151 2L164 12.5L151 23ZM172 12.5L185 2L198 12.5L185 23ZM206 12.5L219 2L232 12.5L219 23ZM240 12.5L253 2L266 12.5L253 23Z" stroke="currentColor" strokeWidth="1.8" fill="none"/>
+              </svg>
             </div>
           </div>
           {ideas.length > 0 && <div className="v3-ideas">

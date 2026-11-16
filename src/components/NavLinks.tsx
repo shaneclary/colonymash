@@ -2,23 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { nav } from "@/content/site";
+import { useRef } from "react";
+import { nav, routes, site } from "@/content/site";
 
-/** The header links. The page you are on gets a bar under it. */
+/** Desktop menu and a compact mobile disclosure. */
 export function NavLinks() {
   const pathname = usePathname();
-  return (
+  const menu = useRef<HTMLDetailsElement>(null);
+  const isCurrent = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  return <>
     <ul className="cm-header__nav">
-      {nav.map((link) => {
-        const current = pathname === link.href || pathname.startsWith(`${link.href}/`);
-        return (
-          <li key={link.href}>
-            <Link className="cm-header__link cm-body-strong" href={link.href} aria-current={current ? "page" : undefined}>
-              {link.label}
-            </Link>
-          </li>
-        );
-      })}
+      {nav.map((link) => <li key={link.href}>
+        <Link className="cm-header__link cm-body-strong" href={link.href}
+          aria-current={isCurrent(link.href) ? "page" : undefined}>{link.label}</Link>
+      </li>)}
     </ul>
-  );
+    <details className="cm-mobile-menu" ref={menu}>
+      <summary aria-label="Toggle navigation menu">
+        <span>Menu</span><span className="cm-mobile-menu__lines" aria-hidden="true"><i/><i/><i/></span>
+      </summary>
+      <ul className="cm-mobile-menu__list">
+        {nav.map((link) => <li key={link.href}>
+          <Link href={link.href} aria-current={isCurrent(link.href) ? "page" : undefined}
+            onClick={() => menu.current?.removeAttribute("open")}>{link.label}</Link>
+        </li>)}
+        <li><Link href={routes.story} onClick={() => menu.current?.removeAttribute("open")}>Our story</Link></li>
+        <li><a href={site.directionsUrl}>Get directions ↗</a></li>
+      </ul>
+    </details>
+  </>;
 }

@@ -247,3 +247,51 @@
   .v3-button { transition: none; }
   .v3-button:hover { transform: none; }
 }
+
+
+/* V3.1: legibility without losing an expressive brewery identity. */
+.v3-hero__title { font-size: clamp(68px, 8.25vw, 118px); line-height: 1.01; letter-spacing: -.034em;
+  font-variation-settings: "wdth" 95; font-weight: 900; }
+.v3-hero__title > span, .v3-hero__title > em { display: block; white-space: nowrap; font-variation-settings: "wdth" 95; }
+.v3-hero__title > em { font-size: 1em; letter-spacing: -.03em; }
+.v3-display { line-height: .99; letter-spacing: -.033em; font-variation-settings: "wdth" 93; }
+.v3-display span { font-variation-settings: "wdth" 100; }
+.v3-result__title { line-height: 1.02; letter-spacing: -.025em; font-variation-settings: "wdth" 94; }
+.v3-release__name { line-height: 1.18; letter-spacing: -.012em; font-variation-settings: "wdth" 98; }
+.v3 :is(.v3-hero__foot,.v3-hero__art-caption,.v3-eyebrow,.v3-release__why,.v3-disclaimer,
+  .v3-small,.v3-question-no,.v3-sectionnum,.v3-note) { font-size: 13px; line-height: 1.55; }
+.v3 .v3-direction small, .v3 .v3-release__actions .v3-textlink { font-size: 13px; }
+.v3 .v3-button { line-height: 1.35; }
+.v3-lab { background: #f6f2e8; color: #0a0a0a; }
+.v3-lab__fieldnote { border: 2px solid #0a0a0a; padding: 20px; display: grid; gap: 9px; background: #fff; }
+.v3-lab__fieldnote > span { font: 800 12px/1.5 var(--font-cm-mono); letter-spacing: .06em; }
+.v3-lab__fieldnote strong { font: 900 clamp(23px,2.8vw,38px)/1.1 var(--font-cm-display); letter-spacing: -.02em; }
+.v3-lab__fieldnote strong i { font: 700 12px/1.5 var(--font-cm-mono); font-style: normal; white-space: nowrap; }
+.v3-lab__fieldnote p { font: 700 12px/1.6 var(--font-cm-mono); border-top: 1px solid #0a0a0a; padding-top: 10px; }
+.v3-lab__poster { position: relative; overflow: hidden; isolation: isolate; border: 3px solid #0a0a0a; }
+.v3-lab__posterhead, .v3-lab__posterbody, .v3-lab__posterfooter, .v3-lab__tiki { position: relative; z-index: 1; }
+.v3-lab__botanical { position: absolute; width: min(42%, 220px); height: auto; top: 50px; right: 6px;
+  opacity: .24; pointer-events: none; z-index: 0; }
+.v3-lab__posterhead { font-size: 12px; border-bottom: 2px solid currentColor; padding-bottom: 12px; }
+.v3-lab__posterbody { margin: auto 0; padding: 26px 0; }
+.v3-lab__posterbody strong { line-height: 1.02; letter-spacing: -.025em; font-variation-settings: "wdth" 100; }
+.v3-lab__posterbadge { font-size: 12px; }
+.v3-lab__tiki { width: 100%; height: 28px; margin-top: 14px; }
+.v3-lab__controls { border-left: 7px double #0a0a0a; padding-left: clamp(14px,2vw,24px); }
+@media (max-width: 850px) {
+  .v3-hero__title { font-size: clamp(54px, 9.8vw, 88px); }
+}
+@media (max-width: 550px) {
+  .v3-hero { padding-block: 45px 65px; }
+  .v3-hero__title { font-size: clamp(41px, 12vw, 66px); letter-spacing: -.03em; line-height: 1.04; }
+  .v3-hero__title > em { font-size: 1.04em; }
+  .v3-display { font-size: clamp(39px, 9.8vw, 59px); line-height: 1; }
+  .v3-hero__art { min-height: 280px; }
+  .v3-hero__foot { margin-top: 30px!important; }
+  .v3-lab__posterbody strong { font-size: clamp(37px, 10vw, 54px); }
+  .v3-lab__posterhead { font-size: 10px; }
+  .v3-lab__botanical { opacity: .18; }
+}
+@media (max-width: 375px) {
+  .v3-hero__title { font-size: 43px; }
+}
