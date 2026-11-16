@@ -20,6 +20,7 @@ import { RequestsPanel } from "./admin/RequestsPanel";
 import { ProductionPanel } from "./admin/ProductionPanel";
 import { StockPanel } from "./admin/StockPanel";
 import { AccountsPanel } from "./admin/AccountsPanel";
+import { StaffAccess } from "./admin/StaffAccess";
 
 type View = StaffView;
 const tabs = staffTabs;
@@ -35,14 +36,15 @@ function NumberBox({ value, unit, max = 100000, step = 1, onChange, ariaLabel }:
 }
 
 export function AdminPortal() {
-  const { state, loaded, commit, undo, undoStack } = useDemoLedger();
+  const { state, loaded, commit, undo, undoStack, sync } = useDemoLedger({ allowLive: true });
+  const isLive = sync.mode === "live";
   const [view, setView] = useState<View>("overview");
   const [message, setMessage] = useState("");
   const [accountId, setAccountId] = useState<string | null>(null);
   const [ingredientName, setIngredientName] = useState("");
   const [ingredientUnit, setIngredientUnit] = useState<Ingredient["unit"]>("kg");
   const today = plusDays(0);
-  const controller = usePortalTour("admin");
+  const controller = usePortalTour("admin", sync.mode);
   /** Open a screen, as the tabs and the walkthrough both do. */
   const go = useCallback((next: string) => {
     setView(next as View); setMessage("");
@@ -57,7 +59,7 @@ export function AdminPortal() {
     return changed && !error;
   }, [commit]);
   const record = useCallback((label: string, change: (current: DemoState) => DemoState) => { setMessage(""); return commit(label, change); }, [commit]);
-  const panel = { state, commit: record, run, today };
+  const panel = { state, commit: record, run, today, live: isLive };
   const openAccount = (id: string | null) => { setAccountId(id); setView("accounts"); };
 
   const forecasts = useMemo(() => ingredientForecast(state, today), [state, today]);
@@ -71,9 +73,20 @@ export function AdminPortal() {
   const week = entries.filter(x => x.date >= today && x.date <= plusDays(7));
   const last = undoStack[0];
 
-  const actions = <button type="button" className="cm-portal__button" onClick={() => record("Reset the demo data", () => demoSeed())}>Reset demo data</button>;
+  const syncText = { idle: "", loading: "Loading…", saving: "Saving…", saved: "Saved", offline: "Not saved. No connection.", denied: "Signed out" }[sync.status];
+  const actions = isLive
+    ? <span className="cm-portal__sync" role="status">{sync.staffName ? sync.staffName + " · " : ""}{syncText}</span>
+    : <button type="button" className="cm-portal__button" onClick={() => record("Reset the demo data", () => demoSeed())}>Reset demo data</button>;
 
-  return <PortalFrame role="admin" title="Brewery command center"
+  if (isLive && !loaded) return <PortalFrame role="admin" live title="Brewery command center" subtitle="Opening the brewery's data." actions={actions}>
+    {sync.status === "denied"
+      ? <div className="cm-portal__feedback" role="alert">This device's staff key no longer works. <Link href="/portal">Sign in again ↗</Link></div>
+      : sync.status === "offline"
+        ? <div className="cm-portal__feedback" role="alert">Could not reach the database. Check the connection and reload.</div>
+        : <p className="cm-portal__muted">Loading the brewery's data…</p>}
+  </PortalFrame>;
+
+  return <PortalFrame role="admin" title="Brewery command center" live={isLive}
     subtitle="Calendar, orders, requests, production, stock and accounts in one place." actions={actions}>
     <nav className="cm-portal__tabs" aria-label="Operations views">
       {tabs.map(tab => <button type="button" key={tab.id} onClick={() => go(tab.id)}
@@ -86,6 +99,9 @@ export function AdminPortal() {
         ↩ Undo{undoStack.length > 1 ? " (" + undoStack.length + ")" : ""}</button>
     </div>}
     {message && <div className="cm-portal__feedback" role="alert">{message}</div>}
+    {sync.note && <div className="cm-portal__feedback" role="status">{sync.note}</div>}
+    {isLive && sync.status === "offline" && <div className="cm-portal__feedback" role="alert">No connection. Your changes are on this screen and will save when it returns. Do not close the page.</div>}
+    {isLive && sync.status === "denied" && <div className="cm-portal__feedback" role="alert">This device's staff key no longer works, so changes are not saving. <Link href="/portal">Sign in again ↗</Link></div>}
     {!loaded && <p className="cm-portal__muted">Loading the local sample ledger…</p>}
 
     {view === "overview" && <>
@@ -116,7 +132,7 @@ export function AdminPortal() {
       </div>
     </>}
 
-    {view === "calendar" && <AdminCalendar {...panel}/>}
+    {view === "calendar" && <AdminCalendar {...panel} feedToken={isLive ? sync.feedToken : ""}/>}
     {view === "orders" && <AdminOrders {...panel} onOpenAccount={openAccount}/>}
     {view === "requests" && <RequestsPanel {...panel} onOpenAccount={openAccount}/>}
     {view === "week" && <WeekPanel {...panel}/>}
@@ -124,7 +140,8 @@ export function AdminPortal() {
     {view === "finished" && <StockPanel {...panel}/>}
     {view === "accounts" && <AccountsPanel {...panel} openId={accountId} onOpen={setAccountId}/>}
 
-    {view === "help" && <HelpPanel controller={controller} tabs={staffTabs} notes={staffNotes}/>}
+    {view === "help" && <HelpPanel controller={controller} tabs={staffTabs} notes={staffNotes} live={isLive}/>}
+    {view === "help" && isLive && <StaffAccess/>}
 
     {view === "ingredients" && <section className="cm-portal__panel" data-tour="ingredients">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Ingredients</p><h2>Stock and what to buy</h2></div><span>{forecasts.length} ingredients</span></div>
@@ -158,10 +175,10 @@ export function AdminPortal() {
           <option value="kg">kg</option><option value="L">L</option><option value="ea">each</option></select></label>
         <button type="submit" className="cm-portal__button cm-portal__button--dark">Add ingredient</button>
       </form>
-      <p className="cm-portal__muted">Every ingredient, amount and supplier here is an invented sample.</p>
+      {!isLive && <p className="cm-portal__muted">Every ingredient, amount and supplier here is an invented sample.</p>}
     </section>}
 
     <TourCard controller={controller} onGo={go}/>
-    <div className="cm-portal__demo-note">THIS IS A FICTIONAL PLANNING SANDBOX — NOT A LIVE INVENTORY, PURCHASE ORDER, OR MERCHANT AUTHORIZATION SYSTEM. <Link href="/portal">Sample logins ↗</Link></div>
+    {!isLive && <div className="cm-portal__demo-note">THIS IS A FICTIONAL PLANNING SANDBOX — NOT A LIVE INVENTORY, PURCHASE ORDER, OR MERCHANT AUTHORIZATION SYSTEM. <Link href="/portal">Sample logins ↗</Link></div>}
   </PortalFrame>;
 }

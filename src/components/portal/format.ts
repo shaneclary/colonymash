@@ -21,4 +21,4 @@ export const newId = (prefix: string) => prefix + "-" + Date.now().toString(36).
 export type Commit = (label: string, change: (state: DemoState) => DemoState) => boolean;
 /** Run a change that can refuse. Shows the reason when it does. */
 export type Run = (label: string, change: (state: DemoState) => { state: DemoState; error?: string }) => boolean;
-export type PanelProps = { state: DemoState; commit: Commit; run: Run; today: string };
+export type PanelProps = { state: DemoState; commit: Commit; run: Run; today: string; /** Real data, not the sample demo. */ live?: boolean };

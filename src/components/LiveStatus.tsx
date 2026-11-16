@@ -4,19 +4,21 @@
 // so a page built on Tuesday is still right on Thursday. Until the script runs (or if it
 // never does) the hours are shown as plain text instead.
 import { useEffect, useState } from "react";
-import { schedule } from "@/content/hours";
 import { describeStatus, statusAt, type Status } from "@/lib/status";
+import { usePublicSite } from "./usePublicSite";
 
 const REFRESH_MS = 30_000;
 
 function useStatus(): Status | null {
+  // Staff changes to this week's hours count here too.
+  const { schedule } = usePublicSite();
   const [status, setStatus] = useState<Status | null>(null);
   useEffect(() => {
     const read = () => setStatus(statusAt(new Date(), schedule));
     read();
     const timer = setInterval(read, REFRESH_MS);
     return () => clearInterval(timer);
-  }, []);
+  }, [schedule]);
   return status;
 }
 

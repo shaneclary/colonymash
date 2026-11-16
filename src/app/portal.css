@@ -542,3 +542,7 @@
   :root:has(.cm-portal__print) .cm-portal__content>:not(.cm-portal__print):not(:has(.cm-portal__print)) { display:none!important; }
   :root:has(.cm-portal__print) .cm-portal__content { padding:0; }
 }
+.cm-portal__sync { font:700 12px/1.5 var(--font-cm-mono); border:2px solid var(--portal-ink); padding:9px 12px; align-self:center; }
+.cm-portal__key { display:block; padding:12px; border:2px dashed var(--portal-ink); font:700 13px/1.5 var(--font-cm-mono); overflow-wrap:anywhere; user-select:all; }
+.cm-portal__section--staff { border-bottom:3px solid var(--portal-ink); }
+.cm-portal__feedback>p { margin-bottom:8px; }

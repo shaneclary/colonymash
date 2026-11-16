@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { calendarEntries, googleCalendarUrl, monthGrid, toIcs, type CalendarEntry } from "@/lib/staff-calendar";
 import { formatRange } from "@/lib/status";
 import { dayDate, monthTitle, type PanelProps } from "../format";
@@ -21,7 +21,10 @@ export function CalendarLinks({ entry }: { entry: CalendarEntry }) {
   </span>;
 }
 
-export function AdminCalendar({ state, today }: PanelProps) {
+export function AdminCalendar({ state, today, feedToken = "" }: PanelProps & { feedToken?: string }) {
+  const [origin, setOrigin] = useState("");
+  useEffect(() => { setOrigin(window.location.origin); }, []);
+  const feed = feedToken && origin ? origin + "/api/calendar/" + feedToken : "";
   const [year, setYear] = useState(() => Number(today.slice(0, 4)));
   const [month, setMonth] = useState(() => Number(today.slice(5, 7)));
   const [selected, setSelected] = useState(today);
@@ -78,6 +81,16 @@ export function AdminCalendar({ state, today }: PanelProps) {
       </section>
       <section className="cm-portal__panel" data-tour="calendar-send">
         <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Google, Apple and Outlook</p><h2>Send to your calendar</h2></div></div>
+        {feed && <div className="cm-portal__subform cm-portal__form">
+          <strong>Subscribe: a calendar that keeps itself up to date</strong>
+          <p className="cm-portal__muted">Add this address once. Your calendar app then checks it on its own schedule, which can be a few hours.</p>
+          <div className="cm-portal__order-actions">
+            <a className="cm-portal__button cm-portal__button--dark" href={feed.replace(/^https?:/, "webcal:")}>Add to Apple Calendar</a>
+            <a className="cm-portal__button" target="_blank" rel="noreferrer" href={"https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(feed.replace(/^https?:/, "webcal:"))}>Add to Google Calendar ↗</a>
+            <button type="button" className="cm-portal__button" onClick={() => { void navigator.clipboard?.writeText(feed); }}>Copy the address</button>
+          </div>
+          <p className="cm-portal__muted">This address is yours. Anyone who has it can read the calendar, so do not post it.</p>
+        </div>}
         <p>Download everything from today on as one calendar file, or add single items from the list.</p>
         <a className="cm-portal__button cm-portal__button--dark" href={icsHref(upcoming)} download="colony-mash-calendar.ics">
           Download {upcoming.length} upcoming items (.ics) ↓</a>

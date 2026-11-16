@@ -8,18 +8,20 @@ import { readTour, tourBack, tourClose, tourGoTo, tourNext, tourRestart, type To
 const storageKey = (role: PortalRole) => "cm-portal-tour-" + role + "-v1";
 
 /** The walkthrough's state for one portal, remembered in this browser. Null until it has loaded. */
-export function usePortalTour(role: PortalRole) {
+export function usePortalTour(role: PortalRole, mode: "demo" | "live" | null = "demo") {
   const steps = tours[role];
   const [tour, setTour] = useState<TourState | null>(null);
   useEffect(() => {
+    if (mode === null) return;
     let raw: string | null = null;
-    try { raw = localStorage.getItem(storageKey(role)); } catch { /* storage blocked: tour still runs */ }
-    setTour(readTour(raw, steps.length));
-  }, [role, steps.length]);
+    try { raw = localStorage.getItem(storageKey(role) + (mode === "live" ? "-live" : "")); } catch { /* storage blocked: tour still runs */ }
+    // The walkthrough is written around the sample data, so a live session does not open it unasked.
+    setTour(raw || mode === "demo" ? readTour(raw, steps.length) : { status: "closed", step: 0 });
+  }, [role, steps.length, mode]);
   const update = useCallback((next: TourState) => {
     setTour(next);
-    try { localStorage.setItem(storageKey(role), JSON.stringify(next)); } catch { /* not remembered */ }
-  }, [role]);
+    try { localStorage.setItem(storageKey(role) + (mode === "live" ? "-live" : ""), JSON.stringify(next)); } catch { /* not remembered */ }
+  }, [role, mode]);
   return {
     tour, steps,
     next: () => tour && update(tourNext(tour, steps.length)),
@@ -85,8 +87,8 @@ export function Info({ text }: { text: string }) {
 }
 
 /** Help screen: restart the walkthrough, jump to a step, and read every screen's note. */
-export function HelpPanel({ controller, tabs, notes, children }: {
-  controller: PortalTour; tabs: readonly { id: string; label: string }[]; notes: Record<string, string>; children?: React.ReactNode;
+export function HelpPanel({ controller, tabs, notes, live = false }: {
+  controller: PortalTour; tabs: readonly { id: string; label: string }[]; notes: Record<string, string>; live?: boolean;
 }) {
   const { tour, steps } = controller;
   return <div className="cm-portal__two" data-tour="help">
@@ -94,6 +96,7 @@ export function HelpPanel({ controller, tabs, notes, children }: {
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Help</p><h2>Walkthrough</h2></div>
         <span>{tour?.status === "active" ? "On · step " + (tour.step + 1) : tour?.status === "done" ? "Finished" : "Off"}</span></div>
       {tour?.status !== "active" && <p>{tourCopy.closedNote}</p>}
+      {live && <p className="cm-portal__muted">{tourCopy.liveNote}</p>}
       <button type="button" className="cm-portal__button cm-portal__button--dark" onClick={controller.restart}>{tourCopy.restart} ↗</button>
       <ol className="cm-portal__help-steps">{steps.map((step, index) => <li key={step.id}>
         <button type="button" className="cm-portal__linkbutton" onClick={() => controller.goTo(index)}>{step.title}</button>
@@ -104,8 +107,7 @@ export function HelpPanel({ controller, tabs, notes, children }: {
       <div className="cm-portal__panel-head"><h2>What each screen is for</h2></div>
       <dl className="cm-portal__help-notes">{tabs.filter(tab => tab.id !== "help").map(tab => <div key={tab.id}>
         <dt>{tab.label}</dt><dd>{notes[tab.id]}</dd></div>)}</dl>
-      <p className="cm-portal__muted">{tourCopy.demoNote}</p>
-      {children}
+      <p className="cm-portal__muted">{live ? tourCopy.liveDataNote : tourCopy.demoNote}</p>
     </section>
   </div>;
 }

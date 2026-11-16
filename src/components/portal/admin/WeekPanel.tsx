@@ -15,7 +15,7 @@ const shiftWeek = (weekStart: string, weeks: number) => {
 const blank = (date: string): EventInput => ({ title: "", date, start: "16:00", end: "20:00", note: "", listed: true });
 
 /** This week's taproom hours and the special events list. */
-export function WeekPanel({ state, commit, run, today }: PanelProps) {
+export function WeekPanel({ state, commit, run, today, live }: PanelProps) {
   const thisWeek = weekStartOf(today);
   const [week, setWeek] = useState(thisWeek);
   const [draft, setDraft] = useState<EventInput>(() => blank(today));
@@ -56,7 +56,9 @@ export function WeekPanel({ state, commit, run, today }: PanelProps) {
           onClick={() => commit("Reset the week of " + shortDate(week) + " to the usual hours", s => resetWeek(s, week))}>Back to the usual hours</button>
         <span className="cm-portal__muted">{changed ? "This week differs from the usual hours." : "This week is on the usual hours."}</span>
       </div>
-      <p className="cm-portal__muted">Saved in this browser only. The public site keeps reading its own hours file until the live backend connects the two.</p>
+      <p className="cm-portal__muted">{live
+        ? "Saved to the brewery database. The public site shows a changed day within a few minutes."
+        : "Saved in this browser only. In a live staff session these changes show on the public site."}</p>
     </section>
     <div className="cm-portal__two">
       <section className="cm-portal__panel">

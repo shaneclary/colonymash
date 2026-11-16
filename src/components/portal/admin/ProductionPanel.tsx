@@ -124,7 +124,7 @@ function RecipeEditor({ state, run, commit }: Pick<PanelProps, "state" | "run" |
 
 /** Production: the batch schedule, each batch's size and ingredients, and saved recipe profiles. */
 export function ProductionPanel(props: PanelProps) {
-  const { state, run, today } = props;
+  const { state, run, today, live } = props;
   const [recipeId, setRecipeId] = useState("");
   const [date, setDate] = useState(today);
   const chosen = state.recipes.some(x => x.id === recipeId) ? recipeId : state.recipes[0]?.id ?? "";
@@ -146,7 +146,7 @@ export function ProductionPanel(props: PanelProps) {
       {short.map(x => <p className="cm-portal__feedback" key={x.productId}>Committed orders need {x.extraBatches} more {x.extraBatches === 1 ? "batch" : "batches"} of {x.productName} than the schedule holds.</p>)}
       {planned.length === 0 && <p className="cm-portal__muted">Nothing on the schedule.</p>}
       <div className="cm-portal__orderlist">{planned.map(batch => <BatchCard key={batch.id} batch={batch} {...props}/>)}</div>
-      <p className="cm-portal__muted">All amounts here are invented samples. Erik's real recipes replace them.</p>
+      {!live && <p className="cm-portal__muted">All amounts here are invented samples. Erik's real recipes replace them.</p>}
     </section>
     <RecipeEditor state={state} run={run} commit={props.commit}/>
   </>;

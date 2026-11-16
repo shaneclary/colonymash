@@ -20,7 +20,7 @@ const fields: { key: AccountText; label: string; wide?: boolean }[] = [
 
 /** Wholesale accounts: a list sorted by who needs attention, and a full page per account. */
 export function AccountsPanel(props: PanelProps & { openId: string | null; onOpen: (id: string | null) => void }) {
-  const { state, run, today, openId, onOpen } = props;
+  const { state, run, today, openId, onOpen, live } = props;
   const [search, setSearch] = useState("");
   const [name, setName] = useState("");
   const account = state.accounts.find(x => x.id === openId);
@@ -51,7 +51,7 @@ export function AccountsPanel(props: PanelProps & { openId: string | null; onOpe
       <label>New account or prospect<input type="text" required maxLength={80} value={name} placeholder="Business name" onChange={e => setName(e.target.value)}/></label>
       <button type="submit" className="cm-portal__button cm-portal__button--dark">Add account</button>
     </form>
-    <p className="cm-portal__muted">Accounts with a follow-up due come first, then accounts that have gone quiet. Every account and contact here is invented.</p>
+    <p className="cm-portal__muted">Accounts with a follow-up due come first, then accounts that have gone quiet.{live ? "" : " Every account and contact here is invented."}</p>
   </section>;
 }
 

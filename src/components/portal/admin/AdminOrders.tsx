@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { fulfillWindows, type FulfillMethod, type OrderSlot, type TradeOrder, type TradeOrderStatus } from "@/content/portal-demo";
+import { demoProducts, fulfillWindows, packLabels, type FulfillMethod, type OrderSlot, type PackFormat, type TradeLine, type TradeOrder, type TradeOrderStatus } from "@/content/portal-demo";
+import { staffCreateOrder } from "@/lib/cloud-ledger";
 import { nextOrderStatus, transitionOrder } from "@/lib/portal-forecast";
 import { previousStatus, runDates, runSheet, scheduleOrder, stepBackOrder } from "@/lib/order-schedule";
 import { trackOrder } from "@/lib/order-tracking";
 import { calendarEntries } from "@/lib/staff-calendar";
 import { OrderTracker } from "../OrderTracker";
 import { CalendarLinks } from "./AdminCalendar";
-import { dayDate, lineText, type PanelProps } from "../format";
+import { dayDate, lineText, newId, productName, type PanelProps } from "../format";
 
 type Filter = "open" | "closed" | "all";
 const isOpen = (order: TradeOrder) => ["requested", "accepted", "scheduled"].includes(order.status);
@@ -23,6 +24,13 @@ export function AdminOrders({ state, commit, run, today, onOpenAccount }: PanelP
   const [runDay, setRunDay] = useState("");
   const sheetDay = days.includes(runDay) ? runDay : days[0] ?? "";
   const stops = sheetDay ? runSheet(state, sheetDay) : [];
+  const [adding, setAdding] = useState(false);
+  const [newAccount, setNewAccount] = useState("");
+  const [newLines, setNewLines] = useState<TradeLine[]>([]);
+  const [pick, setPick] = useState<TradeLine>({ productId: demoProducts[0]?.id ?? "", format: "keg", quantity: 1 });
+  const [newDate, setNewDate] = useState(today);
+  const [newNotes, setNewNotes] = useState("");
+  const accountChoice = state.accounts.some(x => x.id === newAccount) ? newAccount : state.accounts[0]?.id ?? "";
   const orders = [...state.orders].filter(x => filter === "all" || (filter === "open") === isOpen(x))
     .sort((a, b) => (a.slot?.date ?? a.neededBy).localeCompare(b.slot?.date ?? b.neededBy));
   const entries = calendarEntries(state, today);
@@ -39,7 +47,38 @@ export function AdminOrders({ state, commit, run, today, onOpenAccount }: PanelP
     <div role="group" aria-label="Filter orders" className="cm-portal__catalog-filter-buttons">
       {([["open", "Open"], ["closed", "Closed"], ["all", "All"]] as const).map(([key, label]) =>
         <button type="button" key={key} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label}</button>)}
+      <button type="button" aria-pressed={adding} onClick={() => setAdding(!adding)}>+ Add an order</button>
     </div>
+    {adding && <form className="cm-portal__form cm-portal__subform" onSubmit={event => {
+      event.preventDefault();
+      if (run("Added an order for " + (state.accounts.find(x => x.id === accountChoice)?.name ?? "an account"),
+        s => staffCreateOrder(s, accountChoice, newLines, newDate, newNotes, today, newId("ORD")))) { setNewLines([]); setNewNotes(""); setAdding(false); }
+    }}>
+      <strong>An order taken by phone, text or in person</strong>
+      {state.accounts.length === 0 ? <p className="cm-portal__muted">Add the account under Accounts first.</p> : <>
+        <label>Account<select value={accountChoice} onChange={e => setNewAccount(e.target.value)}>
+          {state.accounts.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+        <div className="cm-portal__inline-form">
+          <label>Drink<select value={pick.productId} onChange={e => setPick({ ...pick, productId: e.target.value })}>
+            {demoProducts.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+          <label>Package<select value={pick.format} onChange={e => setPick({ ...pick, format: e.target.value as PackFormat })}>
+            {(Object.keys(packLabels) as PackFormat[]).map(x => <option key={x} value={x}>{packLabels[x]}</option>)}</select></label>
+          <label>How many<input type="number" inputMode="numeric" min={1} max={999} step={1} value={pick.quantity}
+            onChange={e => { const n = Number(e.target.value); if (Number.isSafeInteger(n) && n >= 1 && n <= 999) setPick({ ...pick, quantity: n }); }}/></label>
+          <button type="button" className="cm-portal__button" onClick={() => setNewLines(current => [...current, pick])}>Add line</button>
+        </div>
+        {newLines.length === 0 ? <p className="cm-portal__muted">No lines yet.</p> :
+          <ul className="cm-portal__bill">{newLines.map((line, index) => <li key={index}>
+            <span>{line.quantity} {packLabels[line.format].toLowerCase()} · {productName(line.productId)}</span>
+            <button type="button" className="cm-portal__linkbutton" onClick={() => setNewLines(current => current.filter((_, i) => i !== index))}>Remove</button></li>)}</ul>}
+        <div className="cm-portal__pair">
+          <label>Wanted by<input type="date" min={today} required value={newDate} onChange={e => setNewDate(e.target.value)}/></label>
+          <label>Note<input type="text" maxLength={500} value={newNotes} onChange={e => setNewNotes(e.target.value)}/></label>
+        </div>
+        <button type="submit" disabled={newLines.length === 0} className="cm-portal__button cm-portal__button--dark">Save order</button>
+        <p className="cm-portal__muted">It is saved as Accepted. Schedule it below.</p>
+      </>}
+    </form>}
     {orders.length === 0 && <p className="cm-portal__muted">No orders here.</p>}
     <div className="cm-portal__orderlist">{orders.map(order => {
       const back = previousStatus(state, order);

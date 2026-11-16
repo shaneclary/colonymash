@@ -1,6 +1,7 @@
 import { AmenityList } from "@/components/AmenityList";
 import { Confirm } from "@/components/Confirm";
 import { HoursTable } from "@/components/HoursTable";
+import { PublicEvents } from "@/components/PublicEvents";
 import { StatusPill } from "@/components/LiveStatus";
 import { LocationCard } from "@/components/LocationCard";
 import { Photo } from "@/components/Photo";
@@ -53,6 +54,7 @@ export default function VisitPage() {
             </div>
             <HoursTable />
             <p className="cm-small cm-soft">All times are {timeZoneLabel}.</p>
+            <PublicEvents />
           </div>
           <div className="cm-stack cm-stack--fill">
             <LocationCard />

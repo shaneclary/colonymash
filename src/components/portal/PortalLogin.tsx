@@ -4,7 +4,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { demoAccounts } from "@/content/portal-demo";
-import { demoLogin, getSavedDemoRole } from "./useDemoPortal";
+import { live } from "@/content/site";
+import { demoLogin, getSavedDemoRole, liveSetup, liveSignIn } from "./useDemoPortal";
 
 export function PortalLogin() {
   const router = useRouter();
@@ -13,6 +14,28 @@ export function PortalLogin() {
   const [error, setError] = useState("");
   const [current, setCurrent] = useState<"admin" | "merchant" | null>(null);
   useEffect(() => { setCurrent(getSavedDemoRole()); }, []);
+  const [staffKey, setStaffKey] = useState("");
+  const [staffError, setStaffError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [settingUp, setSettingUp] = useState(false);
+  const [setupName, setSetupName] = useState("");
+  const [newKey, setNewKey] = useState("");
+  async function staffSignIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    const result = await liveSignIn(staffKey);
+    setBusy(false);
+    if (!result.ok) { setStaffError(result.error); return; }
+    router.push("/portal/admin");
+  }
+  async function firstSetup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    const result = await liveSetup(setupName);
+    setBusy(false);
+    if (result.error) { setStaffError(result.error); return; }
+    setStaffError(""); setNewKey(result.key); setStaffKey(result.key);
+  }
   function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const role = demoLogin(email, password);
@@ -37,6 +60,40 @@ export function PortalLogin() {
         </div>
       </div>
     </section>
+    {live && <section className="cm-portal__section cm-portal__section--staff">
+      <div className="cm-portal__inner cm-portal__login-grid">
+        <div className="cm-portal__login-panel">
+          <p className="cm-portal__overline">Brewery staff / live data</p>
+          <h2>Staff sign-in</h2>
+          <p className="cm-portal__muted">For Colony Mash staff. This opens the brewery's own data, saved to its database and shared across your devices.</p>
+          <form onSubmit={staffSignIn} className="cm-portal__form">
+            <label htmlFor="staff-key">Staff access key
+              <input id="staff-key" type="password" autoComplete="current-password" required value={staffKey}
+                onChange={e => { setStaffKey(e.target.value); setStaffError(""); }} placeholder="cm_…"/>
+            </label>
+            {staffError && <p role="alert" className="cm-portal__error">{staffError}</p>}
+            <button type="submit" disabled={busy} className="cm-portal__button cm-portal__button--dark">{busy ? "Checking…" : "Sign in ↗"}</button>
+          </form>
+        </div>
+        <aside className="cm-portal__sample" aria-label="First-time staff setup">
+          <p className="cm-portal__overline">First time</p>
+          <h2>Set up staff access</h2>
+          {newKey ? <>
+            <p>This is your key. It is shown once. Save it in your password manager, then sign in.</p>
+            <code className="cm-portal__key">{newKey}</code>
+            <button type="button" className="cm-portal__button" onClick={() => { void navigator.clipboard?.writeText(newKey); }}>Copy the key</button>
+          </> : settingUp ? <form onSubmit={firstSetup} className="cm-portal__form">
+            <label htmlFor="setup-name">Your name
+              <input id="setup-name" type="text" required maxLength={60} value={setupName} onChange={e => setSetupName(e.target.value)}/>
+            </label>
+            <button type="submit" disabled={busy} className="cm-portal__button cm-portal__button--dark">Make my key</button>
+          </form> : <>
+            <p className="cm-portal__muted">The first person in makes the first key. After that, staff add each other from Help inside the portal.</p>
+            <button type="button" className="cm-portal__button" onClick={() => setSettingUp(true)}>I am the first ↗</button>
+          </>}
+        </aside>
+      </div>
+    </section>}
     <section className="cm-portal__section">
       <div className="cm-portal__inner cm-portal__login-grid">
         <div className="cm-portal__login-panel">

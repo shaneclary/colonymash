@@ -3,7 +3,11 @@
 // Anything the owners have not confirmed is listed in questions.ts and tagged on the
 // page while the site is in review mode.
 
+import { liveConfig } from "../lib/live-rpc.ts";
+
 const indexable = process.env.NEXT_PUBLIC_INDEXABLE === "true";
+/** The live database, when its two public settings are present. Without them the portal is demo only. */
+export const live = liveConfig(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
 export const site = {
   name: "Colony Mash",

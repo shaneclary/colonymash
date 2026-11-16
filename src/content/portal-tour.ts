@@ -112,4 +112,6 @@ export const tourCopy = {
   closedNote: "The walkthrough is off. Turn it back on here.",
   infoLabel: "About this screen",
   demoNote: "Everything in this portal is sample data saved in this browser. Nothing is sent, charged or delivered.",
+  liveNote: "The walkthrough was written around the sample data. Some steps name sample orders you will not have.",
+  liveDataNote: "This is the brewery's own data. It saves to the brewery database a moment after each change, and other signed-in devices catch up within about 20 seconds.",
 } as const;
