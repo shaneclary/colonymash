@@ -17,7 +17,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
   if (!/^[0-9a-f]{32,128}$/.test(token)) return plain("Not found.", 404);
   let data: unknown;
   try { data = await callRpc<unknown>(live, "calendar", { p_token: token }); }
-  catch { return plain("The calendar could not be read just now.", 502); }
+  catch (error) { return plain("The calendar could not be read just now. " + (error instanceof Error ? error.message : ""), 502); }
   const ledger = data ? upgradeDemoLedger(data, emptyLedger()) : null;
   if (!ledger) return plain("Not found.", 404);
   const now = new Date();

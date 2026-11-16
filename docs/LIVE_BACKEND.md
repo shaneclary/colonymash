@@ -27,7 +27,8 @@ To remove it: `drop schema colonymash cascade;` then drop the `public.colonymash
 
 ## Turning it on
 1. Run `supabase/migrations/20261116_colonymash_staff_ledger.sql` once in the project's SQL editor.
-2. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the site. Both are public values.
+2. Nothing to set: the address and public key are the defaults in `src/content/site.ts`. To use another
+   project, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Set the URL to `off` for demo only.
 3. Open `/portal`, choose "I am the first", and save the key it shows. Do this straight after step 1.
 
 ## What a staff key is, and is not

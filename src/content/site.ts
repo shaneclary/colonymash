@@ -6,8 +6,17 @@
 import { liveConfig } from "../lib/live-rpc.ts";
 
 const indexable = process.env.NEXT_PUBLIC_INDEXABLE === "true";
-/** The live database, when its two public settings are present. Without them the portal is demo only. */
-export const live = liveConfig(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+/**
+ * The live database. Both values are public by design: the key can only call the `colonymash_*`
+ * functions, and each of those checks a staff key itself. For now the data sits in its own schema
+ * inside the slbk-platform project. To point somewhere else, set the two environment values.
+ * To switch live mode off, set NEXT_PUBLIC_SUPABASE_URL to "off".
+ */
+const liveDefaults = { url: "https://apejlncgxnkvecgnekyy.supabase.co", key: "sb_publishable_tRrOjFEUsrCH2oXaOLN3dg_U841-gY9" };
+export const live = liveConfig(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || liveDefaults.url,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || liveDefaults.key,
+);
 
 export const site = {
   name: "Colony Mash",
