@@ -138,3 +138,34 @@ html.cm-age-ok .cm-gate-overlay { display: none; }
 @media (min-width: 720px) {
   .cm-actionbar--fixed { display: none; }
 }
+
+
+/* V3.1: mobile menu replaces the five-link, horizontally scrolling header. */
+.cm-mobile-menu { display: none; }
+@media (max-width: 719px) {
+  .cm-header { flex-wrap: nowrap; gap: 8px; padding: 10px 16px; align-items: center; }
+  .cm-header__brand { flex: 1 1 auto; margin-right: auto; min-width: 0; }
+  .cm-header__brand .cm-logo { width: 39px; }
+  .cm-header__brand .cm-sign-sm { font-size: clamp(18px,5vw,23px); line-height: 1; }
+  .cm-header__side { display: none; }
+  .cm-header__navwrap { order: 2; flex: 0 0 auto; margin: 0; overflow: visible; position: relative; }
+  .cm-header__nav { display: none; }
+  .cm-mobile-menu { display: block; position: relative; }
+  .cm-mobile-menu > summary { list-style: none; min-height: 48px; min-width: 86px; padding: 10px 12px;
+    display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+    border: 2px solid var(--cm-ink); font-size: 14px; font-weight: 800; }
+  .cm-mobile-menu > summary::-webkit-details-marker { display: none; }
+  .cm-mobile-menu__lines { display: grid; width: 17px; gap: 3px; }
+  .cm-mobile-menu__lines i { display: block; height: 2px; background: currentColor; width: 100%; }
+  .cm-mobile-menu__list { margin: 0; padding: 8px; list-style: none; position: absolute; z-index: 80;
+    top: calc(100% + 10px); right: 0; width: min(310px, calc(100vw - 26px));
+    background: #0a0a0a; color: #fff; border: 2px solid #fff; box-shadow: 0 0 0 2px #0a0a0a; }
+  .cm-mobile-menu__list a { display: block; padding: 13px 14px; min-height: 48px; color: #fff;
+    font-size: 16px; line-height: 22px; text-decoration: none; border-bottom: 1px solid #555; }
+  .cm-mobile-menu__list a[aria-current="page"] { background: #fff; color: #0a0a0a; }
+  .cm-review { padding: 5px 10px; justify-content: center; gap: 5px 12px; font-size: 12px; line-height: 18px; }
+  .cm-review > span { display: none; }
+  .cm-review a::before { content: "REVIEW BUILD · "; font-size: 11px; text-decoration: none; }
+  .cm-actionbar { grid-template-columns: 1fr 1fr; min-height: 60px; padding: 6px 10px calc(6px + env(safe-area-inset-bottom)); gap: 8px; }
+  .cm-actionbar .cm-btn { font-size: 15px; min-height: 48px; }
+}

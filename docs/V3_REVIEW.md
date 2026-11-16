@@ -40,3 +40,15 @@
 - Opt-in communications with provider support, privacy notice and compliant age verification.
 
 The owner has approved adding /v3 to the main branch as a separate review route. Do not replace the homepage or activate unfinished commerce, delivery, or SMS features without further approval.
+
+
+## V3.1 usability and tropical science update
+- Mobile hero now presents FIND YOUR and COLOR on two readable lines with improved font width, tracking and leading.
+- Mobile nav collapses to a keyboard-accessible Menu. Bottom actions are reduced to On tap and Cans & kegs; Directions remains available from the menu and Visit page.
+- Order builder supports single cans, 6-packs and kegs across multiple flavors with inline plus/minus controls, search, a persistent request cart and editable summary.
+- Old V2 saved generic cans selections remain marked as ambiguous legacy entries, not silently converted into single cans.
+- Delivery tiers still use keg counts only, county 3+ and regional 5+; these proposals remain unconfirmed and inactive.
+- Cabana Lab has vintage botanical specimen linework, a field-laboratory label, a restrained geometric tiki-inspired border and an off-white archival ground.
+- No verified inventory, pricing, POS checkout, real submission endpoint, alcohol delivery authorization or actual SMS enrollment has been added.
+
+Erik must still verify package variants per release, individual can volume, whether 6-packs are sold, keg sizes, deposits, prices, stock and mix-and-match policies before the format selector can become an actual storefront.

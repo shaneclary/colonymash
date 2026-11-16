@@ -99,7 +99,7 @@ export const questions = [
 
   {
     id: "pickup-products",
-    ask: "Which cans and kegs are actually available to go? For each release: package size, keg size, deposit, pricing, stock, and whether a reservation or prepayment is allowed.",
+    ask: "Which flavors can customers buy as SINGLE CANS, 6-PACKS, or KEGS? Confirm actual can volume, whether six-packs are offered, available keg sizes, deposits, prices, stock, and whether pickup can be prepaid. May customers mix single cans across flavors?",
     assumed: "V2 permits an email availability inquiry for any historical release. It does not claim the product is packaged or in stock; no online purchase is enabled.",
     file: "src/content/drinks.ts; src/app/order/page.tsx; src/components/PickupPlanner.tsx",
   },

@@ -7,7 +7,7 @@ export function ReviewBar() {
   if (!site.reviewMode) return null;
   return (
     <aside data-theme="paper" className="cm-review cm-root cm-small" aria-label="Draft notice">
-      <span>Draft for review. Not public yet.</span>
+      <span>Review build · brewery details unconfirmed.</span>
       <Link className="cm-link cm-body-strong" href={routes.confirm}>
         {questions.length} things to confirm
       </Link>
