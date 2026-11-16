@@ -480,3 +480,65 @@
 .cm-portal__pair small { font-weight:500; font-size:12px; color:var(--portal-muted); }
 .cm-portal__details :is(dt,dd) { min-width:0; overflow-wrap:anywhere; }
 .cm-portal__upcoming>div { min-width:0; overflow-wrap:anywhere; }
+
+
+/* Walkthrough card, info notes, Help, run sheet, print. */
+.cm-portal__tour { position:fixed; z-index:96; right:clamp(8px,2vw,24px); bottom:calc(12px + env(safe-area-inset-bottom));
+  width:min(430px,calc(100vw - 16px)); display:grid; gap:10px; padding:14px 16px 16px;
+  background:var(--portal-ink); color:var(--portal-paper); border:3px solid var(--portal-paper); outline:3px solid var(--portal-ink); }
+.cm-portal__tour--lifted { bottom:calc(96px + env(safe-area-inset-bottom)); }
+.cm-portal__tour-top { display:flex; justify-content:space-between; align-items:center; gap:12px; font:700 11px/1.5 var(--font-cm-mono); letter-spacing:.04em; text-transform:uppercase; }
+.cm-portal__tour-top button { width:44px; height:44px; margin:-8px -10px -8px 0; background:none; border:0; color:var(--portal-paper); font:400 30px/1 var(--font-cm-text); }
+.cm-portal__tour strong { display:block; font:900 21px/1.15 var(--font-cm-display); margin-bottom:6px; }
+.cm-portal__tour p { font-size:15px; line-height:1.45; }
+.cm-portal__tour-try { margin-top:8px!important; padding-top:8px; border-top:1px solid var(--portal-muted); }
+.cm-portal__tour-actions { display:grid; grid-template-columns:auto 1fr; gap:8px; }
+.cm-portal__tour-actions button { min-height:46px; padding:8px 16px; background:var(--portal-ink); color:var(--portal-paper);
+  border:2px solid var(--portal-paper); border-radius:0; font:800 15px/1.2 var(--font-cm-text); }
+.cm-portal__tour-actions .cm-portal__tour-next { background:var(--portal-paper); color:var(--portal-ink); }
+.cm-portal .cm-portal__tour :is(button):focus-visible { outline:3px solid var(--portal-paper); outline-offset:2px; }
+[data-tour] { scroll-margin-top:14px; }
+[data-tour-on] { outline:4px solid var(--portal-ink); outline-offset:6px; }
+.cm-portal__info { border:1px solid var(--portal-ink); }
+.cm-portal__info summary { display:flex; align-items:center; gap:10px; min-height:44px; padding:6px 12px; cursor:pointer; list-style:none;
+  font:800 13px/1.3 var(--font-cm-text); }
+.cm-portal__info summary::-webkit-details-marker { display:none; }
+.cm-portal__info summary span { display:grid; place-items:center; width:24px; height:24px; flex:0 0 24px; background:var(--portal-ink); color:var(--portal-paper);
+  font:700 15px/1 var(--font-cm-mono); font-style:italic; }
+.cm-portal__info[open] summary { border-bottom:1px solid var(--portal-hair); }
+.cm-portal__info p { padding:12px; font-size:15px; line-height:1.5; }
+.cm-portal__help-steps { margin:0; padding-left:22px; display:grid; gap:12px; }
+.cm-portal__help-steps li>span { display:block; font-size:13px; line-height:1.5; color:var(--portal-muted); margin-top:2px; }
+.cm-portal__help-steps .cm-portal__linkbutton { font-weight:800; font-size:16px; min-height:30px; }
+.cm-portal__help-notes { margin:0; display:grid; }
+.cm-portal__help-notes>div { padding:11px 0; border-bottom:1px solid var(--portal-hair); display:grid; gap:3px; }
+.cm-portal__help-notes dt { font-weight:900; font-size:15px; }
+.cm-portal__help-notes dd { margin:0; font-size:14px; line-height:1.5; color:var(--portal-muted); }
+.cm-portal__usual { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; border:2px solid var(--portal-ink); padding:14px; }
+.cm-portal__usual>div { display:grid; gap:3px; min-width:0; flex:1 1 220px; }
+.cm-portal__usual span { font-size:14px; color:var(--portal-muted); }
+.cm-portal__run { margin:0; padding:0; list-style:none; counter-reset:stop; display:grid; }
+.cm-portal__run li { counter-increment:stop; display:grid; gap:4px; padding:14px 0 14px 46px; position:relative; border-bottom:1px solid var(--portal-hair); }
+.cm-portal__run li::before { content:counter(stop); position:absolute; left:0; top:14px; width:32px; height:32px; display:grid; place-items:center;
+  background:var(--portal-ink); color:var(--portal-paper); font:800 15px var(--font-cm-mono); }
+.cm-portal__run strong { font:900 20px/1.2 var(--font-cm-display); }
+.cm-portal__run span { font-size:15px; line-height:1.45; }
+@media (max-width:760px) {
+  .cm-portal__tour { left:8px; right:8px; width:auto; }
+  .cm-portal:has(.cm-portal__tour) .cm-portal__content { padding-bottom:calc(330px + env(safe-area-inset-bottom)); }
+}
+@media print {
+  :root:has(.cm-portal__print) body * { visibility:hidden; }
+  :root:has(.cm-portal__print) .cm-portal__print, :root:has(.cm-portal__print) .cm-portal__print * { visibility:visible; }
+  :root:has(.cm-portal__print) .cm-portal__print { position:absolute; left:0; top:0; width:100%; border:0; padding:0; }
+  .cm-portal__no-print, .cm-portal__print .cm-portal__no-print * { display:none!important; }
+  .cm-portal__tour, .cm-portal__undo, .cm-portal__trade-actions { display:none!important; }
+  [data-tour-on] { outline:0; }
+}
+@media print {
+  /* Take the page furniture out of the flow so the printed sheet is one page, not followed by blanks. */
+  :root:has(.cm-portal__print) :is(.cm-site>:not(main), .cm-portal__demo-ribbon, .cm-portal__dashboard-head, .cm-portal__bottom,
+    .cm-portal__tabs, .cm-portal__demo-note, .cm-portal__info, .cm-portal__merchant-band, .cm-portal__feedback) { display:none!important; }
+  :root:has(.cm-portal__print) .cm-portal__content>:not(.cm-portal__print):not(:has(.cm-portal__print)) { display:none!important; }
+  :root:has(.cm-portal__print) .cm-portal__content { padding:0; }
+}

@@ -25,7 +25,7 @@ export function SampleRequests({ state, setState, merchantId, company, contact, 
     setState(result.state); setPicked([]); setNotes("");
     onFeedback("Request sent. The brewery will answer here.");
   }
-  return <div className="cm-portal__two">
+  return <div className="cm-portal__two" data-tour="samples">
     <section className="cm-portal__panel">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Samples and demos</p><h2>Ask the brewery</h2></div></div>
       <form className="cm-portal__form" onSubmit={submit}>

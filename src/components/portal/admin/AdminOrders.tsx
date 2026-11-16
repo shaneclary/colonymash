@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { fulfillWindows, type FulfillMethod, type OrderSlot, type TradeOrder, type TradeOrderStatus } from "@/content/portal-demo";
 import { nextOrderStatus, transitionOrder } from "@/lib/portal-forecast";
-import { previousStatus, scheduleOrder, stepBackOrder } from "@/lib/order-schedule";
+import { previousStatus, runDates, runSheet, scheduleOrder, stepBackOrder } from "@/lib/order-schedule";
 import { trackOrder } from "@/lib/order-tracking";
 import { calendarEntries } from "@/lib/staff-calendar";
 import { OrderTracker } from "../OrderTracker";
@@ -19,6 +19,10 @@ export const slotText = (slot: OrderSlot) =>
 export function AdminOrders({ state, commit, run, today, onOpenAccount }: PanelProps & { onOpenAccount: (id: string) => void }) {
   const [filter, setFilter] = useState<Filter>("open");
   const [drafts, setDrafts] = useState<Record<string, OrderSlot>>({});
+  const days = runDates(state, today);
+  const [runDay, setRunDay] = useState("");
+  const sheetDay = days.includes(runDay) ? runDay : days[0] ?? "";
+  const stops = sheetDay ? runSheet(state, sheetDay) : [];
   const orders = [...state.orders].filter(x => filter === "all" || (filter === "open") === isOpen(x))
     .sort((a, b) => (a.slot?.date ?? a.neededBy).localeCompare(b.slot?.date ?? b.neededBy));
   const entries = calendarEntries(state, today);
@@ -27,7 +31,8 @@ export function AdminOrders({ state, commit, run, today, onOpenAccount }: PanelP
   const setDraft = (order: TradeOrder, patch: Partial<OrderSlot>) =>
     setDrafts(current => ({ ...current, [order.id]: { ...draftFor(order), ...patch } }));
 
-  return <section className="cm-portal__panel">
+  return <>
+  <section className="cm-portal__panel" data-tour="orders">
     <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Orders</p><h2>Accept, schedule and fill</h2></div>
       <span>{state.orders.filter(isOpen).length} open · {state.orders.length} total</span></div>
     <p className="cm-portal__muted">Accept a request, then give it a day, a hand-off and a time window. Every change can be undone from the bar at the top, or stepped back on the order itself.</p>
@@ -71,5 +76,29 @@ export function AdminOrders({ state, commit, run, today, onOpenAccount }: PanelP
         </div>
       </article>;
     })}</div>
-  </section>;
+  </section>
+  <section className="cm-portal__panel cm-portal__print" data-tour="run-sheet">
+    <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Run sheet</p>
+      <h2>{sheetDay ? dayDate(sheetDay) : "Nothing scheduled"}</h2></div>
+      <span>{stops.length} {stops.length === 1 ? "stop" : "stops"}</span></div>
+    {days.length === 0 ? <p className="cm-portal__muted">Schedule an order and its stop shows here.</p> : <>
+      <div className="cm-portal__inline-form cm-portal__no-print">
+        <label>Day<select value={sheetDay} onChange={e => setRunDay(e.target.value)}>
+          {days.map(day => <option key={day} value={day}>{dayDate(day)}</option>)}</select></label>
+        <button type="button" className="cm-portal__button cm-portal__button--dark" onClick={() => window.print()}>Print the sheet</button>
+      </div>
+      <ol className="cm-portal__run">{stops.map(({ order, slot, account }) => <li key={order.id}>
+        <p className="cm-portal__overline">{slot.window || "Any time"} · {slot.method === "pickup" ? "Pickup at the brewery" : "Delivery"} · {order.id}</p>
+        <strong>{order.merchantName}</strong>
+        <span>{lineText(order.lines)}</span>
+        {slot.method === "delivery" && account?.address && <span>{account.address}
+          <a className="cm-portal__no-print" target="_blank" rel="noreferrer" href={"https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(account.address)}> Map ↗</a></span>}
+        {account?.receiving && <span>Receiving: {account.receiving}</span>}
+        {account?.deliveryNotes && <span>{account.deliveryNotes}</span>}
+        {account?.phone && <span>{account.contactName ? account.contactName + ", " : ""}<a href={"tel:" + account.phone.replace(/[^\d+]/g, "")}>{account.phone}</a></span>}
+        {order.notes && <span>Order note: {order.notes}</span>}
+      </li>)}</ol>
+    </>}
+  </section>
+  </>;
 }

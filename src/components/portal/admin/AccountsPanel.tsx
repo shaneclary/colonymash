@@ -27,7 +27,7 @@ export function AccountsPanel(props: PanelProps & { openId: string | null; onOpe
   if (account) return <AccountPage {...props} account={account}/>;
   const rows = accountsByAttention(state, today).filter(x =>
     !search.trim() || [x.account.name, x.account.contactName, x.account.address, ...x.account.tags].join(" ").toLowerCase().includes(search.trim().toLowerCase()));
-  return <section className="cm-portal__panel">
+  return <section className="cm-portal__panel" data-tour="accounts">
     <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Accounts</p><h2>Wholesale accounts</h2></div><span>{state.accounts.length} accounts</span></div>
     <div className="cm-portal__catalog-filter">
       <label htmlFor="account-search">Find an account<input id="account-search" type="search" value={search} placeholder="Name, contact, town or tag" onChange={e => setSearch(e.target.value)}/></label>

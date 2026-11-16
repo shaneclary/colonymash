@@ -21,7 +21,7 @@ export function PromoKit({ onFeedback }: { onFeedback: (message: string) => void
     catch { onFeedback("Copy is blocked in this browser. Select the text and copy it by hand."); }
   }
   return <>
-    <section className="cm-portal__panel">
+    <section className="cm-portal__panel" data-tour="promo">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Promo kit</p><h2>For your menus, ads and posts</h2></div></div>
       <p>Copy a menu line, the brewery's story, or download a photo. Everything here is the same wording the brewery's own site uses.</p>
     </section>
@@ -54,10 +54,12 @@ export function PromoKit({ onFeedback }: { onFeedback: (message: string) => void
         <p className="cm-portal__muted">Only photos the brewery has cleared can be downloaded. Logo files come once the owners supply them. <Confirm id="brand-files"/></p>
       </section>
     </div>
-    <section className="cm-portal__panel">
+    <section className="cm-portal__panel cm-portal__print">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Menu lines</p><h2>Names, styles and ABV</h2></div>
-        <button type="button" onClick={() => copy(shown.map(menuLine).join("\n"), shown.length + " menu lines")}>Copy all {shown.length} shown ↗</button></div>
-      <div className="cm-portal__catalog-filter">
+        <span className="cm-portal__no-print cm-portal__order-actions">
+          <button type="button" onClick={() => copy(shown.map(menuLine).join("\n"), shown.length + " menu lines")}>Copy all {shown.length} shown ↗</button>
+          <button type="button" onClick={() => window.print()}>Print this list ↗</button></span></div>
+      <div className="cm-portal__catalog-filter cm-portal__no-print">
         <label htmlFor="promo-search">Find a drink<input id="promo-search" type="search" value={search} onChange={e => setSearch(e.target.value)}/></label>
         <div role="group" aria-label="Filter drinks" className="cm-portal__catalog-filter-buttons">
           {([["all", "All"], ["seltzer", "Seltzers"], ["beer", "Beer"]] as const).map(([key, label]) =>
@@ -68,9 +70,9 @@ export function PromoKit({ onFeedback }: { onFeedback: (message: string) => void
         <span className={"cm-portal__stock-dot " + (drink.kind === "seltzer" ? "cm-fill--" + drink.flavor : "cm-fill--b2")} aria-hidden="true"/>
         <div><strong>{drink.name}</strong><span>{(drink.style || (drink.kind === "seltzer" ? "Hard seltzer" : "Beer"))} · {drink.abv.toFixed(1)}% ABV</span>
           {"description" in drink && drink.description && <span>{drink.description}</span>}</div>
-        <button type="button" className="cm-portal__button" onClick={() => copy(withNote(drink), drink.name)}>Copy</button>
+        <button type="button" className="cm-portal__button cm-portal__no-print" onClick={() => copy(withNote(drink), drink.name)}>Copy</button>
       </li>)}</ul>
-      <p className="cm-portal__muted">This is the full release list, not what is available to order today. Check the catalog for that.</p>
+      <p className="cm-portal__muted cm-portal__no-print">This is the full release list, not what is available to order today. Check the catalog for that. Filter the list first to print only the drinks you carry.</p>
     </section>
   </>;
 }

@@ -99,7 +99,7 @@ function RecipeEditor({ state, run, commit }: Pick<PanelProps, "state" | "run" |
     setDraft(recipe ? { name: recipe.name, productId: recipe.productId, batchLiters: recipe.batchLiters, bill: recipe.bill.map(x => ({ ...x })) } : blankRecipe());
   }
   const nameTaken = state.recipes.some(x => x.name.toLowerCase() === draft.name.trim().toLowerCase());
-  return <section className="cm-portal__panel">
+  return <section className="cm-portal__panel" data-tour="recipes">
     <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Recipe profiles</p><h2>Save a recipe to reuse</h2></div><span>{state.recipes.length} saved</span></div>
     <form className="cm-portal__form" onSubmit={(event: FormEvent<HTMLFormElement>) => { event.preventDefault(); run("Saved recipe: " + draft.name.trim(), s => saveRecipe(s, draft, newId("RCP"))); }}>
       <label htmlFor="recipe-load">Start from
@@ -132,7 +132,7 @@ export function ProductionPanel(props: PanelProps) {
   const packaged = state.batches.filter(x => x.status === "packaged");
   const short = productionEstimates(state as DemoState).filter(x => x.extraBatches > 0);
   return <>
-    <section className="cm-portal__panel">
+    <section className="cm-portal__panel" data-tour="batches">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Production</p><h2>Batch schedule</h2></div>
         <span>{planned.length} planned · {packaged.length} packaged</span></div>
       <form className="cm-portal__inline-form" onSubmit={event => { event.preventDefault(); run("Scheduled a batch", s => scheduleBatch(s, chosen, date, newId("B"))); }}>

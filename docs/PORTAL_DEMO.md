@@ -116,3 +116,16 @@ The referral bonus is removed. A bonus paid in product to a licensed retailer ru
 - Saved browser data from earlier versions upgrades in place (ledger version 4). Old referral orders are dropped.
 
 **Suggested test:** Staff → Orders → schedule DEMO-1001 → Undo → schedule again → Calendar → download the file. Production → add a batch → change its size → save it as a recipe → package it → Packaged stock. Accounts → open one → add a note. Merchant → Track orders, Samples & demos, Promo kit.
+
+
+## V3.1 guided walkthrough
+
+- **Walkthrough.** Both portals open with a step-by-step card on a first visit: 14 steps for staff, 8 for a merchant. Each step opens its screen, scrolls to the part it is about and outlines it. Some steps end with a "Try it" action.
+- **Closing it.** The X closes the walkthrough and it stays closed, per browser and per side.
+- **Help tab.** Run the walkthrough again, jump to any single step, and read what every screen is for.
+- **i buttons.** Each screen has an "About this screen" note under the tabs.
+- **Run sheet (staff, Orders).** One day's scheduled deliveries and pickups in working order, with address, receiving hours, delivery notes, contact and a map link. Prints on its own.
+- **Reorder my usual (merchant, My inventory).** Loads the cart with the items that repeat across the last six orders at their average quantity, or the latest order when nothing repeats yet.
+- **Print a menu list (merchant, Promo kit).** Prints the drink lines currently shown.
+
+All walkthrough and note wording is in `src/content/portal-tour.ts`. To walk Erik through from the start, open Help and tap "Run the walkthrough again", or use a private window.

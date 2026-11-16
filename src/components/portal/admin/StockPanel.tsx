@@ -28,7 +28,7 @@ export function StockPanel({ state, commit, run }: PanelProps) {
     if (run("Added stock: " + productName(productId), s => addFinishedStock(s, productId, add))) setAdd(zero);
   }
   return <>
-    <section className="cm-portal__panel">
+    <section className="cm-portal__panel" data-tour="stock-add">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Packaged stock</p><h2>Add cans, packs and kegs</h2></div><Confirm id="pack-size"/></div>
       <form className="cm-portal__form" onSubmit={submit}>
         <label htmlFor="stock-product">Drink

@@ -49,7 +49,7 @@ export function AdminCalendar({ state, today }: PanelProps) {
           <button type="button" className="cm-portal__button" onClick={goToday}>Today</button>
           <button type="button" className="cm-portal__button" onClick={() => move(1)} aria-label="Next month">→</button>
         </div></div>
-      <div className="cm-portal__cal" role="grid" aria-label={monthTitle(year, month)}>
+      <div className="cm-portal__cal" role="grid" data-tour="calendar" aria-label={monthTitle(year, month)}>
         <div className="cm-portal__cal-row cm-portal__cal-row--head" role="row">
           {weekdays.map(x => <span key={x} role="columnheader">{x}</span>)}</div>
         {weeks.map(week => <div className="cm-portal__cal-row" role="row" key={week[0]}>
@@ -76,7 +76,7 @@ export function AdminCalendar({ state, today }: PanelProps) {
         {dayEntries.length === 0 && <p className="cm-portal__muted">Nothing on this day.</p>}
         <ul className="cm-portal__agenda">{dayEntries.map(entry => <AgendaItem key={entry.id} entry={entry}/>)}</ul>
       </section>
-      <section className="cm-portal__panel">
+      <section className="cm-portal__panel" data-tour="calendar-send">
         <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Google, Apple and Outlook</p><h2>Send to your calendar</h2></div></div>
         <p>Download everything from today on as one calendar file, or add single items from the list.</p>
         <a className="cm-portal__button cm-portal__button--dark" href={icsHref(upcoming)} download="colony-mash-calendar.ics">

@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { demoSeed, merchantDemoId } from "../content/portal-demo.ts";
-import { previousStatus, scheduleOrder, stepBackOrder } from "./order-schedule.ts";
+import { previousStatus, runDates, runSheet, scheduleOrder, stepBackOrder, usualOrder } from "./order-schedule.ts";
+import { createTradeRequest } from "./portal-forecast.ts";
 import { transitionOrder } from "./portal-forecast.ts";
 import { receiveMerchantOrder } from "./merchant-operations.ts";
 
@@ -62,4 +63,31 @@ test("nothing steps back from requested, or after the buyer has received it", ()
   const received = receiveMerchantOrder(filled, merchantDemoId, "DEMO-1001", today);
   assert.equal(previousStatus(received, get(received, "DEMO-1001")), null);
   assert.equal(stepBackOrder(received, "DEMO-1001"), received);
+});
+
+test("the run sheet lists one day's scheduled stops in working order with account details", () => {
+  // Seed: DEMO-1002 is scheduled for a morning delivery on 2026-11-28.
+  let state = scheduleOrder(seed, "DEMO-1001", { date: "2026-11-28", method: "pickup", window: "Morning" }, today).state;
+  state = scheduleOrder(transitionOrder(state, "DEMO-1003", "accepted", today), "DEMO-1003", { date: "2026-11-28", method: "delivery", window: "Afternoon" }, today).state;
+  const stops = runSheet(state, "2026-11-28");
+  assert.deepEqual(stops.map(x => x.order.id), ["DEMO-1002", "DEMO-1001", "DEMO-1003"]); // morning delivery, morning pickup, afternoon
+  assert.equal(stops[0].account?.address, "200 Sample Road, Paso Robles, CA");
+  assert.equal(stops[0].account?.receiving, "Thu 9 AM–noon");
+  assert.deepEqual(runSheet(state, "2026-11-29"), []);
+  assert.deepEqual(runDates(state, today), ["2026-11-28"]);
+  assert.deepEqual(runDates(state, "2026-11-29"), []);
+  // Requested and accepted orders are not on the sheet.
+  assert.deepEqual(runSheet(seed, "2026-11-21"), []);
+});
+
+test("the usual order is what repeats; with no repeats it is the latest order", () => {
+  // Seed: two orders that share no items, so the usual is the newest one.
+  assert.deepEqual(usualOrder(seed, merchantDemoId), [{ productId: "cherry-limeade", format: "six_pack", quantity: 5 }]);
+  const again = createTradeRequest(seed, merchantDemoId, "Coastal", [
+    { productId: "cherry-limeade", format: "keg", quantity: 4 }, { productId: "purple-reign", format: "can", quantity: 12 }], "2026-12-05", "", "NEW-1", today);
+  // Cherry kegs now appear twice (2 and 4): the usual is 3. Nothing else repeats.
+  assert.deepEqual(usualOrder(again, merchantDemoId), [{ productId: "cherry-limeade", format: "keg", quantity: 3 }]);
+  assert.deepEqual(usualOrder(seed, "prospect-demo"), []);
+  const cancelled = { ...seed, orders: seed.orders.map(x => x.id === "DEMO-1003" ? { ...x, status: "cancelled" as const } : x) };
+  assert.equal(usualOrder(cancelled, merchantDemoId).length, 2); // falls back to DEMO-1001
 });

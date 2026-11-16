@@ -19,7 +19,7 @@ export function RequestsPanel({ state, commit, onOpenAccount }: PanelProps & { o
     .sort((a, b) => Number(isClosed(a)) - Number(isClosed(b)) || a.date.localeCompare(b.date));
   const count = (key: KindFilter) => state.requests.filter(x => !isClosed(x) && (key === "all" || x.kind === key)).length;
 
-  return <section className="cm-portal__panel">
+  return <section className="cm-portal__panel" data-tour="requests">
     <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Requests</p><h2>Events, samples and demos to review</h2></div>
       <span>{state.requests.filter(x => x.status === "new").length} new</span></div>
     <p className="cm-portal__muted">Private event requests, and sample or staff-demo requests from wholesale accounts. Approved ones go on the calendar. Samples to licensed accounts have state limits and must be recorded. This list is that record. <Confirm id="samples"/></p>

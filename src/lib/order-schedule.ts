@@ -1,5 +1,5 @@
 import {
-  type DemoState, type FulfillMethod, type OrderSlot, type TradeOrder, type TradeOrderStatus,
+  fulfillWindows, type Account, type DemoState, type FulfillMethod, type OrderSlot, type TradeLine, type TradeOrder, type TradeOrderStatus,
 } from "../content/portal-demo.ts";
 
 export type ScheduleResult = { state: DemoState; error?: string };
@@ -49,4 +49,38 @@ export function stepBackOrder(state: DemoState, id: string): DemoState {
   const keepSlot = to === "scheduled" || to === "fulfilled";
   const next: TradeOrder = { ...rest, status: to, ...(order.history ? { history: trimmed } : {}), ...(keepSlot && slot ? { slot } : {}) };
   return { ...state, orders: state.orders.map(x => x.id === id ? next : x) };
+}
+
+export type RunStop = { order: TradeOrder; slot: OrderSlot; account?: Account };
+
+/** One day's scheduled hand-offs in the order to work them: by window, deliveries before pickups, then by name. */
+export function runSheet(state: DemoState, date: string): RunStop[] {
+  const windowRank = (window: string) => { const at = (fulfillWindows as readonly string[]).indexOf(window); return at < 0 ? fulfillWindows.length : at; };
+  return state.orders.filter(x => x.status === "scheduled" && x.slot?.date === date)
+    .map(order => ({ order, slot: order.slot!, account: state.accounts.find(x => x.id === order.merchantId) }))
+    .sort((a, b) => windowRank(a.slot.window) - windowRank(b.slot.window) ||
+      Number(a.slot.method === "pickup") - Number(b.slot.method === "pickup") || a.order.merchantName.localeCompare(b.order.merchantName));
+}
+
+/** Days from today on that have something scheduled, soonest first. */
+export function runDates(state: DemoState, today: string): string[] {
+  return [...new Set(state.orders.filter(x => x.status === "scheduled" && x.slot && x.slot.date >= today).map(x => x.slot!.date))].sort();
+}
+
+/**
+ * What an account usually orders: every item that appears in two or more of its last six orders,
+ * at its average quantity. With no repeats yet, it is simply the most recent order.
+ */
+export function usualOrder(state: DemoState, merchantId: string): TradeLine[] {
+  const recent = state.orders.filter(x => x.merchantId === merchantId && x.status !== "cancelled")
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id)).slice(0, 6);
+  const seen = new Map<string, { line: TradeLine; orders: number; total: number }>();
+  for (const order of recent) for (const line of order.lines) {
+    const key = line.productId + "|" + line.format;
+    const entry = seen.get(key) ?? { line, orders: 0, total: 0 };
+    seen.set(key, { line: entry.line, orders: entry.orders + 1, total: entry.total + line.quantity });
+  }
+  const repeats = [...seen.values()].filter(x => x.orders >= 2)
+    .map(x => ({ productId: x.line.productId, format: x.line.format, quantity: Math.min(99, Math.max(1, Math.round(x.total / x.orders))) }));
+  return repeats.length ? repeats : (recent[0]?.lines ?? []).map(x => ({ ...x }));
 }

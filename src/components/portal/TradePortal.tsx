@@ -17,6 +17,9 @@ import {
 } from "@/lib/merchant-operations";
 import { findOrder, trackOrder } from "@/lib/order-tracking";
 import { OrderTracker } from "./OrderTracker";
+import { merchantNotes, merchantTabs, type MerchantView } from "@/content/portal-tour";
+import { usualOrder } from "@/lib/order-schedule";
+import { HelpPanel, Info, TourCard, usePortalTour } from "./Tour";
 import { PromoKit } from "./PromoKit";
 import { SampleRequests } from "./SampleRequests";
 import { CalendarLinks } from "./admin/AdminCalendar";
@@ -25,18 +28,9 @@ import { lineText } from "./format";
 import { PortalFrame } from "./PortalFrame";
 import { useDemoLedger } from "./useDemoPortal";
 
-type View = "inventory" | "catalog" | "schedule" | "requests" | "samples" | "promo" | "activity" | "account";
+type View = MerchantView;
 type OrderFilter = "open" | "closed" | "all";
-const sections: {id:View;label:string}[]=[
-  {id:"inventory",label:"My inventory"},
-  {id:"catalog",label:"Reorder & catalog"},
-  {id:"schedule",label:"Future orders"},
-  {id:"requests",label:"Track orders"},
-  {id:"samples",label:"Samples & demos"},
-  {id:"promo",label:"Promo kit"},
-  {id:"activity",label:"Stock activity"},
-  {id:"account",label:"Account"},
-];
+const sections = merchantTabs;
 const company="Coastal Partner — Demo";
 const dateLabel=(iso:string)=>{
   const d=new Date(iso+"T12:00:00Z");
@@ -87,6 +81,9 @@ export function TradePortal(){
   const [orderFilter,setOrderFilter]=useState<OrderFilter>("open");
   const [orderQuery,setOrderQuery]=useState("");
   const today=plusDays(0);
+  const controller=usePortalTour("merchant");
+  const go=(next:string)=>{setView(next as View);setFeedback("");};
+  const usual=useMemo(()=>usualOrder(state,merchantDemoId),[state]);
   const forecasts=useMemo(()=>merchantStockForecast(state,merchantDemoId,today),[state,today]);
   const orders=useMemo(()=>merchantOrders(state,merchantDemoId),[state]);
   const mySeries=state.merchantSeries.filter(x=>x.merchantId===merchantDemoId);
@@ -188,7 +185,7 @@ export function TradePortal(){
   }
   const tabs=<nav className="cm-portal__tabs" aria-label="Merchant dashboard sections">
     {sections.map(x=><button type="button" key={x.id} aria-current={view===x.id?"page":undefined}
-      onClick={()=>{setView(x.id);setFeedback("");}}>{x.label}</button>)}
+      onClick={()=>go(x.id)}>{x.label}</button>)}
   </nav>;
 
   return <PortalFrame role="merchant" title="Your Colony Mash stock"
@@ -196,11 +193,12 @@ export function TradePortal(){
     <div className="cm-portal__merchant-band"><span>COASTAL PARTNER — FICTIONAL MERCHANT</span>
       <strong>Wholesale partner workspace</strong><span>ALL INVENTORY &amp; ORDERS BELOW ARE DEMO DATA</span></div>
     {tabs}
+    {view!=="help"&&<Info key={view} text={merchantNotes[view]}/>}
     {feedback&&<div className="cm-portal__feedback" role="status">{feedback}</div>}
     {!loaded&&<p className="cm-portal__muted">Opening local sample inventory…</p>}
 
     {view==="inventory"&&<>
-      <section className="cm-portal__metrics" aria-label="Merchant stock summary">
+      <section className="cm-portal__metrics" aria-label="Merchant stock summary" data-tour="inventory">
         <div><span>Tracked formats</span><strong>{countTracked}</strong><small>Of {demoProducts.length*merchantFormats.length} historical-release format combinations</small></div>
         <div><span>Needs attention</span><strong>{low.length}</strong><small>Below minimum or lead-time coverage</small></div>
         <div><span>Open orders</span><strong>{openOrders.length}</strong><small>{pending.length} waiting on the brewery</small></div>
@@ -210,6 +208,12 @@ export function TradePortal(){
         <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">YOUR OWN VENUE INVENTORY</p>
           <h2>Counts, par levels & reorder alerts</h2></div>
           <button type="button" onClick={suggestedToCart}>Build suggested reorder ↗</button></div>
+        <div className="cm-portal__usual" data-tour="usual">
+          <div><strong>Your usual</strong>
+            <span>{usual.length?lineText(usual):"Place an order and it shows here."}</span></div>
+          <button type="button" className="cm-portal__button cm-portal__button--dark" disabled={!usual.length}
+            onClick={()=>{preload(usual);setFeedback("Your usual is in the cart. Pick a date and send it.");}}>Reorder my usual ↗</button>
+        </div>
         <p className="cm-portal__muted">These are your venue's stock counts—not Colony Mash brewery stock. Adjust an on-hand count, log sell-through, and set your minimum and target quantity for each package format. Incoming counts refer only to accepted/scheduled sample orders, not guaranteed shipments.</p>
         <div className="cm-portal__track-new">
           <div><strong>Track another archived release</strong>
@@ -285,7 +289,7 @@ export function TradePortal(){
       </section>
     </>}
 
-    {view==="catalog"&&<div className="cm-portal__trade-layout">
+    {view==="catalog"&&<div className="cm-portal__trade-layout" data-tour="catalog">
       <section className="cm-portal__panel">
         <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">REPLENISHMENT / WHOLESALE DEMO</p>
           <h2>Choose products to reorder</h2></div><span>{demoProducts.length} sample releases</span></div>
@@ -354,7 +358,7 @@ export function TradePortal(){
     </div>}
 
     {view==="schedule"&&<>
-      <div className="cm-portal__two">
+      <div className="cm-portal__two" data-tour="schedule">
         <section className="cm-portal__panel">
           <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">SCHEDULED REPLENISHMENT</p>
             <h2>Plan upcoming requests</h2></div></div>
@@ -421,7 +425,7 @@ export function TradePortal(){
       </section>
     </>}
 
-    {view==="requests"&&<section className="cm-portal__panel">
+    {view==="requests"&&<section className="cm-portal__panel" data-tour="track">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Order tracking</p>
         <h2>Where every order stands</h2></div><span>{openOrders.length} open · {orders.length} total</span></div>
       <p className="cm-portal__muted">Each order moves through five stages. You can move or cancel an order while it is Requested. After that the brewery moves it. When it is Filled, receive it to add the units to your stock.</p>
@@ -523,6 +527,9 @@ export function TradePortal(){
       </section>
     </div>}
 
+    {view==="help"&&<HelpPanel controller={controller} tabs={merchantTabs} notes={merchantNotes}/>}
+
+    <TourCard controller={controller} onGo={go} lifted/>
     <nav className="cm-portal__trade-actions" aria-label="Primary merchant actions">
       <button type="button" className={view==="catalog"?"cm-portal__trade-action--active":""}
         aria-current={view==="catalog"?"page":undefined}

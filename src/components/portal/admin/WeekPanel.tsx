@@ -33,7 +33,7 @@ export function WeekPanel({ state, commit, run, today }: PanelProps) {
   }
 
   return <>
-    <section className="cm-portal__panel">
+    <section className="cm-portal__panel" data-tour="week">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Taproom hours</p>
         <h2>Week of {shortDate(week)}{week === thisWeek ? " (this week)" : ""}</h2></div>
         <div className="cm-portal__order-actions">

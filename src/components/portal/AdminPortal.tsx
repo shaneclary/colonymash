@@ -8,6 +8,8 @@ import { calendarEntries } from "@/lib/staff-calendar";
 import { accountsByAttention } from "@/lib/accounts";
 import { addIngredient } from "@/lib/production";
 import { newRequestCount } from "@/lib/staff-requests";
+import { staffNotes, staffTabs, type StaffView } from "@/content/portal-tour";
+import { HelpPanel, Info, TourCard, usePortalTour } from "./Tour";
 import { PortalFrame } from "./PortalFrame";
 import { useDemoLedger } from "./useDemoPortal";
 import { amount, dayDate, newId, shortDate, type Run } from "./format";
@@ -19,12 +21,8 @@ import { ProductionPanel } from "./admin/ProductionPanel";
 import { StockPanel } from "./admin/StockPanel";
 import { AccountsPanel } from "./admin/AccountsPanel";
 
-type View = "overview" | "calendar" | "orders" | "requests" | "week" | "production" | "ingredients" | "finished" | "accounts";
-const tabs: { id: View; label: string }[] = [
-  { id: "overview", label: "Overview" }, { id: "calendar", label: "Calendar" }, { id: "orders", label: "Orders" },
-  { id: "requests", label: "Requests" }, { id: "week", label: "Hours & events" }, { id: "production", label: "Production" },
-  { id: "ingredients", label: "Ingredients" }, { id: "finished", label: "Packaged stock" }, { id: "accounts", label: "Accounts" },
-];
+type View = StaffView;
+const tabs = staffTabs;
 
 function NumberBox({ value, unit, max = 100000, step = 1, onChange, ariaLabel }: {
   value: number; unit?: string; max?: number; step?: number; onChange: (value: number) => void; ariaLabel: string;
@@ -44,6 +42,12 @@ export function AdminPortal() {
   const [ingredientName, setIngredientName] = useState("");
   const [ingredientUnit, setIngredientUnit] = useState<Ingredient["unit"]>("kg");
   const today = plusDays(0);
+  const controller = usePortalTour("admin");
+  /** Open a screen, as the tabs and the walkthrough both do. */
+  const go = useCallback((next: string) => {
+    setView(next as View); setMessage("");
+    if (next === "accounts") setAccountId(null);
+  }, []);
 
   /** Run a change that can refuse. A refusal shows its reason instead of changing anything. */
   const run: Run = useCallback((label, change) => {
@@ -72,9 +76,10 @@ export function AdminPortal() {
   return <PortalFrame role="admin" title="Brewery command center"
     subtitle="Calendar, orders, requests, production, stock and accounts in one place." actions={actions}>
     <nav className="cm-portal__tabs" aria-label="Operations views">
-      {tabs.map(tab => <button type="button" key={tab.id} onClick={() => { setView(tab.id); setMessage(""); if (tab.id === "accounts") setAccountId(null); }}
+      {tabs.map(tab => <button type="button" key={tab.id} onClick={() => go(tab.id)}
         aria-current={view === tab.id ? "page" : undefined}>{tab.label}</button>)}
     </nav>
+    {view !== "help" && <Info key={view} text={staffNotes[view]}/>}
     {last && <div className="cm-portal__undo" role="status">
       <span><strong>Done:</strong> {last.label}.</span>
       <button type="button" className="cm-portal__button cm-portal__button--dark" onClick={() => { const label = undo(); setMessage(label ? "Undone: " + label + "." : ""); }}>
@@ -84,7 +89,7 @@ export function AdminPortal() {
     {!loaded && <p className="cm-portal__muted">Loading the local sample ledger…</p>}
 
     {view === "overview" && <>
-      <section className="cm-portal__metrics" aria-label="What needs you">
+      <section className="cm-portal__metrics" aria-label="What needs you" data-tour="overview">
         <button type="button" onClick={() => setView("orders")}><span>Orders to act on</span><strong>{requested.length + toSchedule.length}</strong><small>{requested.length} to review · {toSchedule.length} to schedule</small></button>
         <button type="button" onClick={() => setView("requests")}><span>New requests</span><strong>{newRequestCount(state)}</strong><small>Events, samples, demos</small></button>
         <button type="button" onClick={() => setView("ingredients")}><span>Ingredients to buy</span><strong>{warning.length}</strong><small>{short.length} packaged shortfalls</small></button>
@@ -119,7 +124,9 @@ export function AdminPortal() {
     {view === "finished" && <StockPanel {...panel}/>}
     {view === "accounts" && <AccountsPanel {...panel} openId={accountId} onOpen={setAccountId}/>}
 
-    {view === "ingredients" && <section className="cm-portal__panel">
+    {view === "help" && <HelpPanel controller={controller} tabs={staffTabs} notes={staffNotes}/>}
+
+    {view === "ingredients" && <section className="cm-portal__panel" data-tour="ingredients">
       <div className="cm-portal__panel-head"><div><p className="cm-portal__overline">Ingredients</p><h2>Stock and what to buy</h2></div><span>{forecasts.length} ingredients</span></div>
       <p className="cm-portal__muted">Need comes from the batch schedule, plus any extra batches committed orders call for. A suggested amount is not a purchase order.</p>
       <div className="cm-portal__tablewrap"><table className="cm-portal__table">
@@ -154,6 +161,7 @@ export function AdminPortal() {
       <p className="cm-portal__muted">Every ingredient, amount and supplier here is an invented sample.</p>
     </section>}
 
+    <TourCard controller={controller} onGo={go}/>
     <div className="cm-portal__demo-note">THIS IS A FICTIONAL PLANNING SANDBOX — NOT A LIVE INVENTORY, PURCHASE ORDER, OR MERCHANT AUTHORIZATION SYSTEM. <Link href="/portal">Sample logins ↗</Link></div>
   </PortalFrame>;
 }
